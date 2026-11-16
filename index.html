@@ -204,8 +204,14 @@
       'assets/photos/photo3.jpg',
       'assets/photos/photo4.jpg',
       'assets/photos/photo5.jpg',
-      'assets/photos/photo6.jpg'
+      'assets/photos/photo6.jpg',
+      'assets/photos/photo7.jpg',
+      'assets/photos/photo8.jpg',
+      'assets/photos/photo9.jpg',
+      'assets/photos/photo10.jpg'
     ];
+    // Large HOME glass café uses its own exterior/interior photo on the HOME sign.
+    const HOME_PHOTO = 'assets/photos/home.jpg';
 
     const PLAYLIST = [
       { title: '山间微风', src: 'assets/music/song1.mp3' },
@@ -474,72 +480,90 @@
       for(let b=0;b<5;b++) { const t=(b+.4)/5, a=t*Math.PI*5.5, r=(1.02-t*.68)*scale; const bauble=new THREE.Mesh(new THREE.SphereGeometry(.13,12,10),new THREE.MeshStandardMaterial({color:[0xa7473e,0xd7b36f,0x7f9b91,0xe8dfc8,b%2?0x9d3f39:0xd8b36d][b],metalness:.2,roughness:.35})); bauble.position.set(x+Math.cos(a)*r,0.82+t*3.25,z+Math.sin(a)*r); scene.add(bauble); }
     }
 
-    // COSY HOME COTTAGE — click it to return to HOME_URL in the editable config below
+    // GRAND GLASS HOME COFFEE HOUSE — positioned beyond the two distant mountain ridges.
     const cottage = new THREE.Group();
-    const cottageBodyMat = new THREE.MeshStandardMaterial({ color: 0xf0d8bd, roughness: 0.88 });
-    const cottageRoofMat = new THREE.MeshStandardMaterial({ color: 0x6b3e45, roughness: 0.82 });
-    const cottageTrimMat = new THREE.MeshStandardMaterial({ color: 0xffe8c9, roughness: 0.75 });
-    const cottageGlassMat = new THREE.MeshStandardMaterial({ color: 0x9cbbb0, emissive: 0xffb86c, emissiveIntensity: 1.05, roughness: 0.25 });
-    const cottageDoorMat = new THREE.MeshStandardMaterial({ color: 0x684b37, roughness: 0.8 });
-    function cottageBox(w,h,d,mat,x,y,z,parent=cottage) {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
-      m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; parent.add(m); return m;
+    const homeFrameMat = new THREE.MeshStandardMaterial({ color: 0x3d514b, metalness: 0.48, roughness: 0.34 });
+    const homeTrimMat = new THREE.MeshStandardMaterial({ color: 0xe4c58c, metalness: 0.38, roughness: 0.32 });
+    const homeGlassMat = new THREE.MeshPhysicalMaterial({
+      color: 0xb8d8d8, roughness: 0.12, metalness: 0.08,
+      transmission: 0.28, transparent: true, opacity: 0.72,
+      emissive: 0xffd49a, emissiveIntensity: 0.12, side: THREE.DoubleSide
+    });
+    const homeStoneMat = new THREE.MeshStandardMaterial({ color: 0xd5c8b3, roughness: 0.92 });
+    const homeRoofMat = new THREE.MeshStandardMaterial({ color: 0x263d39, metalness: 0.35, roughness: 0.42 });
+    function cottageBox(w,h,d,material,x,y,z,parent=cottage) {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), material);
+      mesh.position.set(x,y,z); mesh.castShadow=true; mesh.receiveShadow=true; parent.add(mesh); return mesh;
     }
-    cottageBox(7.2,3.9,5.1,cottageBodyMat,0,2.0,0);
-    // Cute bakery-style round window and little flower boxes.
-    const roundWindow = new THREE.Mesh(new THREE.CircleGeometry(0.52, 32), cottageGlassMat);
-    roundWindow.position.set(0,3.15,2.59); cottage.add(roundWindow);
-    const roundFrame = new THREE.Mesh(new THREE.TorusGeometry(0.55,0.09,10,32), cottageTrimMat);
-    roundFrame.position.copy(roundWindow.position); cottage.add(roundFrame);
-    for (const wx of [-2.25,2.25]) {
-      cottageBox(1.25,0.22,0.38,cottageDoorMat,wx,1.82,2.72);
-      for(let f=0;f<3;f++) { const flower=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,8),new THREE.MeshStandardMaterial({color:[0xd98f83,0xe6b85f,0xb5c78f][f],emissive:0x2a1208})); flower.position.set(wx-0.35+f*0.35,2.02,2.85); cottage.add(flower); }
+    // Wide stone base and tall glass walls: a spacious conservatory-style café.
+    cottageBox(16,0.7,11,homeStoneMat,0,0.35,0);
+    cottageBox(15.2,0.22,10.2,homeTrimMat,0,0.82,0);
+    cottageBox(15.0,6.2,0.18,homeGlassMat,0,4.0,5.0);
+    cottageBox(15.0,6.2,0.18,homeGlassMat,0,4.0,-5.0);
+    cottageBox(0.18,6.2,10.0,homeGlassMat,-7.5,4.0,0);
+    cottageBox(0.18,6.2,10.0,homeGlassMat,7.5,4.0,0);
+    // Elegant dark metal mullions and corner pillars.
+    for (const x of [-7.45,-5,-2.5,0,2.5,5,7.45]) {
+      cottageBox(0.13,6.25,0.16,homeFrameMat,x,4.0,5.08);
+      cottageBox(0.13,6.25,0.16,homeFrameMat,x,4.0,-5.08);
     }
-    // pitched roof panels
-    const roofA = cottageBox(4.15,0.3,5.7,cottageRoofMat,-1.82,4.25,0);
-    roofA.rotation.z = -0.48;
-    const roofB = cottageBox(4.15,0.3,5.7,cottageRoofMat,1.82,4.25,0);
-    roofB.rotation.z = 0.48;
-    // front porch and door
-    cottageBox(1.25,2.45,0.16,cottageDoorMat,0.55,1.28,2.47);
-    cottageBox(0.12,0.12,0.08,cottageTrimMat,0.95,1.25,2.58);
-    cottageBox(1.15,0.18,0.22,cottageTrimMat,0.55,2.55,2.52);
-    for (const x of [-1.75,2.0]) {
-      cottageBox(1.05,1.0,0.13,cottageGlassMat,x,2.45,2.45);
-      cottageBox(1.2,0.12,0.18,cottageTrimMat,x,2.45,2.53);
-      cottageBox(0.12,1.12,0.18,cottageTrimMat,x,2.45,2.53);
-      cottageBox(0.1,1.0,0.2,cottageTrimMat,x,2.45,2.55);
+    for (const z of [-5,-2.5,0,2.5,5]) {
+      cottageBox(0.16,6.25,0.13,homeFrameMat,-7.58,4.0,z);
+      cottageBox(0.16,6.25,0.13,homeFrameMat,7.58,4.0,z);
     }
-    // chimney and warm porch lights
-    cottageBox(0.62,1.55,0.62,cottageRoofMat,-2.0,4.9,-0.9);
-    const porchLampMat = new THREE.MeshStandardMaterial({color:0xffd08a,emissive:0xffa84a,emissiveIntensity:1.5});
-    const porchLamp = new THREE.Mesh(new THREE.SphereGeometry(0.16,16,12),porchLampMat);
-    porchLamp.position.set(1.55,2.65,2.55); cottage.add(porchLamp);
-    const homeLight = new THREE.PointLight(0xffbd79,25,15,2);
-    homeLight.position.set(0,3,2.4); scene.add(homeLight);
-    // HOME sign
+    // Flat glass roof with a raised central lantern ridge.
+    cottageBox(15.8,0.22,10.8,homeRoofMat,0,7.18,0);
+    cottageBox(15.5,0.16,0.32,homeTrimMat,0,7.34,0);
+    for (const x of [-7.5,7.5]) cottageBox(0.28,0.32,10.7,homeTrimMat,x,7.32,0);
+    // Grand double entrance, warm fixed lanterns (no animation or flicker).
+    cottageBox(2.5,3.8,0.22,homeGlassMat,0,2.75,5.12);
+    cottageBox(0.12,4.0,0.25,homeTrimMat,-1.28,2.8,5.16);
+    cottageBox(0.12,4.0,0.25,homeTrimMat,1.28,2.8,5.16);
+    cottageBox(0.12,3.8,0.25,homeTrimMat,0,2.8,5.18);
+    const fixedLanternMat = new THREE.MeshStandardMaterial({
+      color:0xffd69a, emissive:0xffb85c, emissiveIntensity:0.42, roughness:0.3
+    });
+    for (const x of [-5.8,5.8]) {
+      const lantern = new THREE.Mesh(new THREE.BoxGeometry(0.38,0.72,0.3),fixedLanternMat);
+      lantern.position.set(x,4.5,5.22); cottage.add(lantern);
+    }
+    // Visible HOME plaque.
     const homeSignCanvas = document.createElement('canvas');
-    homeSignCanvas.width=768; homeSignCanvas.height=220;
+    homeSignCanvas.width=900; homeSignCanvas.height=260;
     const hctx=homeSignCanvas.getContext('2d');
-    hctx.fillStyle='#182c2a'; hctx.fillRect(0,0,768,220);
-    hctx.strokeStyle='#efc987'; hctx.lineWidth=13; hctx.strokeRect(14,14,740,192);
-    hctx.shadowColor='rgba(255,190,105,.28)'; hctx.shadowBlur=8; hctx.fillStyle='#f5e5c9'; hctx.font='bold 104px Georgia'; hctx.textAlign='center'; hctx.textBaseline='middle';
-    hctx.fillText('⌂  HOME',384,112);
+    hctx.fillStyle='#203b35'; hctx.fillRect(0,0,900,260);
+    hctx.strokeStyle='#e8c78d'; hctx.lineWidth=14; hctx.strokeRect(14,14,872,232);
+    hctx.fillStyle='#fff0d2'; hctx.font='bold 112px Georgia'; hctx.textAlign='center'; hctx.textBaseline='middle';
+    hctx.fillText('HOME  ·  COFFEE HOUSE',450,132);
     const homeTex=new THREE.CanvasTexture(homeSignCanvas); homeTex.colorSpace=THREE.SRGBColorSpace;
-    const homeSign=new THREE.Mesh(new THREE.PlaneGeometry(5.2,1.42),new THREE.MeshBasicMaterial({map:homeTex,transparent:true,side:THREE.DoubleSide}));
-    homeSign.position.set(0,6.05,2.72); cottage.add(homeSign);
-    // Snow-laden roof ridges, a Christmas wreath and warm lanterns dress the little market cottage.
-    const roofSnowMat=new THREE.MeshStandardMaterial({color:0xf3f5f2,roughness:1});
-    for(const side of [-1,1]) { const snowLip=new THREE.Mesh(new THREE.BoxGeometry(4.25,.16,5.78),roofSnowMat); snowLip.position.set(side*1.82,4.43,0); snowLip.rotation.z=side*.37; cottage.add(snowLip); }
-    const wreath=new THREE.Group();
-    const wreathRing=new THREE.Mesh(new THREE.TorusGeometry(.62,.13,10,32),new THREE.MeshStandardMaterial({color:0x315747,roughness:.9})); wreath.add(wreathRing);
-    for(let q=0;q<9;q++){const a=q/9*Math.PI*2;const leaf=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8),new THREE.MeshStandardMaterial({color:q%2?0x3e6b51:0x294c3d,roughness:1}));leaf.position.set(Math.cos(a)*.58,Math.sin(a)*.58,0);leaf.scale.set(.72,1.2,.55);wreath.add(leaf);}
-    const bow=new THREE.Mesh(new THREE.TorusGeometry(.19,.07,8,18),new THREE.MeshStandardMaterial({color:0xa9473e,roughness:.55})); bow.position.set(0,-.68,.02); wreath.add(bow);
-    wreath.position.set(-2.45,2.55,2.66); cottage.add(wreath);
-    for(const x of [-3.05,3.05]) { const icicle=new THREE.Mesh(new THREE.ConeGeometry(.08,.55,7),roofSnowMat); icicle.position.set(x,3.92,2.45); icicle.rotation.x=Math.PI; cottage.add(icicle); }
-    cottage.position.set(-33,0,-28);
+    const homeSign=new THREE.Mesh(new THREE.PlaneGeometry(9.2,2.65),new THREE.MeshBasicMaterial({map:homeTex,side:THREE.DoubleSide}));
+    homeSign.position.set(0,9.0,5.25); cottage.add(homeSign);
+    // Photo plaque: replace assets/photos/home.jpg with the HOME café photo.
+    const homePhotoFrame = new THREE.Mesh(new THREE.PlaneGeometry(3.1,1.8),homeTrimMat);
+    homePhotoFrame.position.set(0,1.85,5.28); cottage.add(homePhotoFrame);
+    const homePhoto = new THREE.Mesh(new THREE.PlaneGeometry(2.85,1.55),new THREE.MeshBasicMaterial({color:0xe8d9bf,side:THREE.DoubleSide}));
+    homePhoto.position.set(0,1.85,5.30); cottage.add(homePhoto);
+    const homePhotoImage = new Image();
+    homePhotoImage.onload = () => {
+      const tex = new THREE.Texture(homePhotoImage); tex.colorSpace=THREE.SRGBColorSpace; tex.needsUpdate=true;
+      homePhoto.material.map=tex; homePhoto.material.color.set(0xffffff); homePhoto.material.needsUpdate=true;
+    };
+    homePhotoImage.onerror = () => console.warn('HOME photo not found:',HOME_PHOTO);
+    homePhotoImage.src = HOME_PHOTO;
+    // Warm interior furniture visible through the glazing.
+    const tableMat = new THREE.MeshStandardMaterial({color:0x78533a,roughness:0.7});
+    for (const x of [-4.2,0,4.2]) {
+      cottageBox(1.8,0.18,1.15,tableMat,x,1.65,-1.0);
+      cottageBox(0.16,1.1,0.16,homeFrameMat,x,1.05,-1.0);
+      for (const z of [-1.8,-0.2]) cottageBox(0.55,0.85,0.55,homeStoneMat,x,0.95,z);
+    }
+    // Soft constant interior lighting only — no pulsing, flickering or animated porch light.
+    const homeLight = new THREE.PointLight(0xffc98c, 18, 34, 2);
+    homeLight.position.set(0,4.0,0); cottage.add(homeLight);
+    cottage.position.set(-48,0,-48);
     cottage.rotation.y=0;
-    cottage.userData={kind:'home',name:'Your Cosy Home',description:'A warm little cottage. Click to return to your homepage.',url:null};
+    cottage.userData={kind:'home',name:'HOME COFFEE HOUSE',description:'A grand glasshouse café beyond the mountain ridge. Click to visit our homepage.',url:null};
+    scene.add(cottage);
     scene.add(cottage);
 
     // 营火
@@ -613,10 +637,10 @@
       {name:"VELVET BEAN", logo:"VB", logoImage:PHOTOS[3], tagline:"Smooth brews, lovely views.", url:"https://example.com", body:"#4b554e", roof:"#d7c5a4", accent:"#d9a76f", style:"modern"},
       {name:"SUNNY SIDE CAFÉ", logo:"☼", logoImage:PHOTOS[4], tagline:"A brighter kind of coffee.", url:"https://example.com", body:"#e9c85f", roof:"#f5ead1", accent:"#b85e42", style:"awning"},
       {name:"WILDWOOD COFFEE", logo:"WW", logoImage:PHOTOS[5], tagline:"Forest air and fresh espresso.", url:"https://example.com", body:"#71836a", roof:"#3f4c3e", accent:"#d4b58a", style:"classic"},
-      {name:"CAFÉ NOMAD", logo:"CN", tagline:"Take the scenic route.", url:"https://example.com", body:"#d8c6b2", roof:"#637a89", accent:"#bd805e", style:"modern"},
-      {name:"LITTLE BRASS CUP", logo:"LB", tagline:"A tiny van with a big heart.", url:"https://example.com", body:"#c28c5b", roof:"#493c32", accent:"#e7c68e", style:"retro"},
-      {name:"MOONBEAM ESPRESSO", logo:"ME", tagline:"Coffee beneath the stars.", url:"https://example.com", body:"#58647a", roof:"#d7d0c1", accent:"#e4b779", style:"modern"},
-      {name:"HONEY & OAK", logo:"H&O", tagline:"Warm cups, kind company.", url:"https://example.com", body:"#d7b98d", roof:"#65756b", accent:"#f2e6cf", style:"classic"}
+      {name:"CAFÉ NOMAD", logo:"CN", logoImage:PHOTOS[6], tagline:"Take the scenic route.", url:"https://example.com", body:"#d8c6b2", roof:"#637a89", accent:"#bd805e", style:"modern"},
+      {name:"LITTLE BRASS CUP", logo:"LB", logoImage:PHOTOS[7], tagline:"A tiny van with a big heart.", url:"https://example.com", body:"#c28c5b", roof:"#493c32", accent:"#e7c68e", style:"retro"},
+      {name:"MOONBEAM ESPRESSO", logo:"ME", logoImage:PHOTOS[8], tagline:"Coffee beneath the stars.", url:"https://example.com", body:"#58647a", roof:"#d7d0c1", accent:"#e4b779", style:"modern"},
+      {name:"HONEY & OAK", logo:"H&O", logoImage:PHOTOS[9], tagline:"Warm cups, kind company.", url:"https://example.com", body:"#d7b98d", roof:"#65756b", accent:"#f2e6cf", style:"classic"}
     ];
 
     const vanPickTargets = [];
@@ -763,8 +787,8 @@
     });
     COFFEE_VANS.forEach((shop,i)=>createCoffeeVan(shop,i,vanSpots[i]));
 
-    // Keep the home cottage farther toward the village perimeter, clear of the coffee stops
-    cottage.position.set(-33,0,-28);
+    // Put the home cottage in the village centre, slightly behind the coffee stops
+    cottage.position.set(-29,0,-24);
     vanPickTargets.push(...cottage.children.filter(o=>o.isMesh));
 
     function setSelected(item) {
@@ -1152,7 +1176,7 @@
       particleGeometry.attributes.position.needsUpdate = true;
       flame.scale.y = 0.92 + Math.sin(time * 12) * 0.08 + Math.random() * 0.04;
       fireLight.intensity = 21 + Math.sin(time * 9) * 4 + Math.random() * 2;
-      homeLight.intensity = 24; // steady porch illumination; prevent visible pulsing
+      // HOME lighting is intentionally constant: no flicker or pulse.
 
       if (introActive) {
         const t=Math.min(1,(performance.now()-introStart)/3200);
