@@ -189,7 +189,7 @@ For normal future updates, you can copy and paste these four commands:
 ```bash
 git pull origin main
 git add -A
-git commit -m "Update Coffee Village website"
+git commit -m "Update website"
 git push origin main
 ```
 

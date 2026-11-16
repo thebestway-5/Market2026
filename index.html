@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Vintage Coffee Village · Coffee Van World</title>
+  <title>The Warm Village · Market World</title>
 
   <style>
     * { box-sizing: border-box; }
@@ -38,10 +38,10 @@
     button { min-height:40px; padding:8px 13px; cursor:pointer; transition:background .2s ease,border-color .2s ease; touch-action:manipulation; }
     button:focus-visible, select:focus-visible, input:focus-visible { outline:2px solid #e4bd87; outline-offset:3px; }
     .settings-toggle { position:fixed; z-index:6; top:22px; right:22px; display:flex; align-items:center; gap:9px;
-      min-height:48px; padding:0 16px; border:1px solid rgba(220,190,145,.72); border-radius:999px;
+      width:48px; height:48px; min-height:48px; padding:0; justify-content:center; border:1px solid rgba(220,190,145,.72); border-radius:999px;
       color:#f8e7c9; background:linear-gradient(135deg,rgba(74,39,35,.97),rgba(28,43,48,.97));
       box-shadow:0 8px 28px #0007, inset 0 1px rgba(255,255,255,.12); letter-spacing:.14em; font-size:10px; }
-    .settings-toggle .gear { font-size:20px; line-height:1; color:#e9bd7c; }
+    .settings-toggle .gear { font-size:22px; line-height:1; color:#e9bd7c; }
     .panel { display:none; top:82px; right:22px; width:min(340px,calc(100vw - 28px)); max-height:calc(100vh - 104px); }
     .panel.open { display:block; animation:panelIn .22s ease-out; }
     @keyframes panelIn { from { opacity:0; transform:translateY(-8px) scale(.98); } to { opacity:1; transform:none; } }
@@ -61,7 +61,7 @@
       background:rgba(223,183,125,.08); margin-top:7px; }
     #selectedLabel { color:#f4e5d0; font-family:Georgia,serif; font-size:15px; }
     #selectedHint { margin-top:4px; color:#c8b8a4; font-size:10px; line-height:1.5; }
-    .help { position:fixed; z-index:3; left:28px; bottom:22px; max-width:360px; color:rgba(250,240,225,.86);
+    .help { position:fixed; z-index:3; left:28px; bottom:88px; max-width:360px; color:rgba(250,240,225,.86);
       font-size:11px; line-height:1.85; text-shadow:0 1px 9px #000; pointer-events:none; }
     .help strong { color:#f1c98f; font-weight:600; }
     .hover-card { position:fixed; z-index:8; display:none; min-width:190px; max-width:245px; padding:12px 14px;
@@ -82,11 +82,28 @@
       padding:9px 14px; border:1px solid #e0bd8c55; border-radius:30px; background:#211e1bdc;
       color:#f5e5cf; font-size:11px; opacity:0; transition:opacity .25s; pointer-events:none; }
     .toast.show { opacity:1; }
+
+    .explore-toggle { position:fixed; z-index:5; left:22px; bottom:22px; border:1px solid rgba(232,194,142,.65);
+      border-radius:999px; color:#f8e7c9; background:rgba(35,31,27,.88); font-size:11px; letter-spacing:.12em; box-shadow:0 8px 24px #0007; }
+    .explore-list { display:none; position:fixed; z-index:9; left:22px; bottom:76px; width:min(320px,calc(100vw - 28px));
+      max-height:min(65vh,540px); overflow:auto; padding:14px; border:1px solid rgba(239,218,187,.3); border-radius:16px;
+      background:rgba(31,29,25,.96); box-shadow:0 18px 45px #0009; backdrop-filter:blur(16px); }
+    .explore-list.open { display:block; }
+    .explore-heading { display:flex; justify-content:space-between; align-items:center; color:#e8bd7c; font-size:11px; letter-spacing:.16em; margin-bottom:10px; }
+    .explore-heading button { min-width:34px; min-height:34px; padding:0; font-size:22px; }
+    .explore-items { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+    .explore-items button { min-height:44px; text-align:left; font-size:12px; overflow-wrap:anywhere; }
+    .explore-items button span { color:#e8bd7c; font-weight:700; margin-right:7px; }
+    .walk-pad { position:fixed; z-index:5; right:18px; bottom:18px; display:flex; flex-direction:column; align-items:center; gap:4px; opacity:.9; touch-action:none; }
+    .walk-pad div { display:flex; gap:4px; }
+    .walk-pad button { width:42px; height:42px; min-height:42px; padding:0; border-radius:12px;
+      background:rgba(31,29,25,.72); border-color:rgba(239,218,187,.35); color:#f8e7c9; font-size:16px; }
+    .walk-pad button:active { background:rgba(205,151,88,.65); }
     @media (max-width:650px) {
       .brand { top:12px; left:13px; }
       .brand h1 { font-size:clamp(20px,6vw,27px); }
       .brand p { font-size:8px; letter-spacing:.14em; }
-      .settings-toggle { top:12px; right:12px; min-height:46px; padding:0 14px; }
+      .settings-toggle { top:max(10px, env(safe-area-inset-top)); right:max(10px, env(safe-area-inset-right)); width:44px; height:44px; min-height:44px; padding:0; }
       .panel { top:68px; bottom:auto; right:10px; width:min(330px,calc(100vw - 20px));
         max-height:min(72vh,560px); padding:12px; border-radius:16px; }
       .panel .section { padding-bottom:9px; margin-bottom:9px; }
@@ -98,12 +115,18 @@
       .music-controls { grid-template-columns:44px 1fr 44px; gap:7px; }
       #trackName { font-size:12px; }
       .help { left:13px; top:76px; bottom:auto; max-width:calc(100vw - 26px); font-size:10px; }
-      .hover-card { left:12px !important; right:12px; top:auto !important; bottom:14px; max-width:none; width:auto;
+      .hover-card { left:12px !important; right:12px; top:auto !important; bottom:112px; max-width:none; width:auto;
         transform:none; padding:12px 14px; pointer-events:none; }
       .hover-card .shop-name { font-size:18px; }
       .hover-card .shop-action { min-height:40px; display:inline-flex; align-items:center; }
       .hover-logo { width:48px; height:48px; }
-      .animal-note { display:none; }
+      .explore-toggle { left:max(10px, env(safe-area-inset-left)); bottom:max(12px, env(safe-area-inset-bottom)); min-height:42px; padding:8px 12px; font-size:10px; z-index:8; }
+      .explore-list { left:max(10px, env(safe-area-inset-left)); bottom:calc(62px + env(safe-area-inset-bottom)); width:min(310px,calc(100vw - 20px)); max-height:55vh; padding:11px; z-index:12; }
+      .explore-items { grid-template-columns:1fr; gap:5px; }
+      .explore-items button { min-height:40px; }
+      .walk-pad { right:max(10px, env(safe-area-inset-right)); bottom:max(10px, env(safe-area-inset-bottom)); z-index:8; }
+      .walk-pad button { width:38px; height:38px; min-height:38px; }
+      .help { display:none; }
     }
     @media (max-height:620px) and (max-width:650px) {
       .panel { max-height:48vh; }
@@ -114,12 +137,11 @@
 
 <body>
   <div class="brand">
-    <h1><span class="brand-mark">✦</span>COFFEE VILLAGE</h1>
-    <p>A CHRISTMAS MARKET · COFFEE &amp; CANDLELIGHT</p>
+    <h1><span class="brand-mark">✦</span>THE WARM VILLAGE</h1>
   </div>
 
   <button class="settings-toggle" id="settingsToggle" type="button" aria-label="Open settings" aria-expanded="false" title="Settings">
-    <span class="gear">⚙</span><span class="settings-word">SETTINGS</span>
+    <span class="gear" aria-hidden="true">⚙</span>
   </button>
   <section class="panel" id="settingsPanel" aria-label="Village settings">
     <details class="atmosphere">
@@ -142,7 +164,7 @@
       <div class="panel-title">Your selection · 当前选择</div>
       <div class="selected-card">
         <div id="selectedLabel">Explore the village</div>
-        <div id="selectedHint">Hover over a coffee van to discover its shop sign. Click to visit its website.</div>
+        <div id="selectedHint">Choose a stall to explore, or wander around the village.</div>
       </div>
       <div class="row" style="margin-top:8px">
         <span>Camera view</span>
@@ -160,23 +182,31 @@
       </div>
       <div class="row"><label for="volume">Volume</label><input id="volume" type="range" min="0" max="1" step="0.01" value="0.35"></div>
     </div>
-    <div class="row"><span style="color:#cdb99f;font-size:10px">10 independent coffee stops</span><span style="color:#e4bd87;font-size:10px">CLICK TO EXPLORE ↗</span></div>
+    <div class="row"><span style="color:#cdb99f;font-size:10px">10 MARKET STALLS</span><span style="color:#e4bd87;font-size:10px">CLICK TO EXPLORE ↗</span></div>
   </section>
 
+  <button id="exploreToggle" class="explore-toggle" type="button" aria-expanded="false">CLICK TO EXPLORE</button>
+  <nav id="exploreList" class="explore-list" aria-label="Market stall directory">
+    <div class="explore-heading">EXPLORE THE VILLAGE <button id="closeExplore" type="button" aria-label="Close list">×</button></div>
+    <div id="exploreItems" class="explore-items"></div>
+  </nav>
+  <div class="walk-pad" aria-label="Walk controls">
+    <button type="button" data-walk="forward" aria-label="Walk forward">▲</button>
+    <div><button type="button" data-walk="left" aria-label="Walk left">◀</button><button type="button" data-walk="back" aria-label="Walk backward">▼</button><button type="button" data-walk="right" aria-label="Walk right">▶</button></div>
+  </div>
   <div class="help">
-    <strong>DESKTOP</strong> Hover to preview; click the van or cottage to visit its website.<br>
-    <strong>MOBILE</strong> Tap once for details; tap the same object again to visit.<br>
+    <strong>DESKTOP</strong> Drag to look around; use WASD or arrow keys to walk.<br>
+    <strong>MOBILE</strong> Drag to look around; use the direction pad to walk.<br>
     Drag to rotate · Scroll/pinch to zoom
   </div>
   <div class="hover-card" id="hoverCard">
-    <div class="eyebrow">Coffee stop · Welcome</div>
-    <div class="shop-name" id="hoverName">Coffee Shop</div>
-    <div class="shop-desc" id="hoverDesc">A little coffee story.</div>
-    <img class="hover-logo" id="hoverLogo" alt="Coffee shop logo">
+    <div class="eyebrow">WELCOME TO THE VILLAGE</div>
+    <div class="shop-name" id="hoverName">Market Stall</div>
+    <div class="shop-desc" id="hoverDesc">A little story from the village.</div>
+    <img class="hover-logo" id="hoverLogo" alt="Market stall logo">
     <a class="shop-action" id="hoverLink" href="#" target="_blank" rel="noopener noreferrer">CLICK TO VISIT WEBSITE ↗</a>
   </div>
   <div class="toast" id="toast">Opening your destination…</div>
-  <div class="animal-note">🐿️ Little woodland friends are wandering around the fire</div>
   <div class="vignette"></div>
   <audio id="audio" preload="none"></audio>
 
@@ -195,7 +225,7 @@
 
     // ============================================================
     // LOGO IMAGE FILES — photo1.jpg to photo6.jpg are used as the
-    // logos of coffee vans 1–6. Vans 7–10 use their text logo.
+    // logos of market vans 1–6. Vans 7–10 use their text logo.
     // Put your own logo images in assets/photos/. JPG, PNG and WEBP work.
     // ============================================================
     const PHOTOS = [
@@ -214,9 +244,9 @@
     const HOME_PHOTO = 'assets/photos/home.jpg';
 
     const PLAYLIST = [
-      { title: 'Song1', src: 'assets/music/song1.mp3' },
-      { title: 'Song2', src: 'assets/music/song2.mp3' },
-      { title: 'Song3', src: 'assets/music/song3.mp3' }
+      { title: '山间微风', src: 'assets/music/song1.mp3' },
+      { title: '炉火旁的夜晚', src: 'assets/music/song2.mp3' },
+      { title: '雪落无声', src: 'assets/music/song3.mp3' }
     ];
 
     // Settings are intentionally tucked behind one clear gear icon.
@@ -480,7 +510,7 @@
       for(let b=0;b<5;b++) { const t=(b+.4)/5, a=t*Math.PI*5.5, r=(1.02-t*.68)*scale; const bauble=new THREE.Mesh(new THREE.SphereGeometry(.13,12,10),new THREE.MeshStandardMaterial({color:[0xa7473e,0xd7b36f,0x7f9b91,0xe8dfc8,b%2?0x9d3f39:0xd8b36d][b],metalness:.2,roughness:.35})); bauble.position.set(x+Math.cos(a)*r,0.82+t*3.25,z+Math.sin(a)*r); scene.add(bauble); }
     }
 
-    // GRAND GLASS HOME COFFEE HOUSE — positioned beyond the two distant mountain ridges.
+    // GRAND GLASS VILLAGE HOME — positioned beyond the two distant mountain ridges.
     const cottage = new THREE.Group();
     const homeFrameMat = new THREE.MeshStandardMaterial({ color: 0x3d514b, metalness: 0.48, roughness: 0.34 });
     const homeTrimMat = new THREE.MeshStandardMaterial({ color: 0xe4c58c, metalness: 0.38, roughness: 0.32 });
@@ -534,7 +564,7 @@
     hctx.fillStyle='#203b35'; hctx.fillRect(0,0,900,260);
     hctx.strokeStyle='#e8c78d'; hctx.lineWidth=14; hctx.strokeRect(14,14,872,232);
     hctx.fillStyle='#fff0d2'; hctx.font='bold 112px Georgia'; hctx.textAlign='center'; hctx.textBaseline='middle';
-    hctx.fillText('HOME  ·  COFFEE HOUSE',450,132);
+    hctx.fillText('HOME',450,132);
     const homeTex=new THREE.CanvasTexture(homeSignCanvas); homeTex.colorSpace=THREE.SRGBColorSpace;
     const homeSign=new THREE.Mesh(new THREE.PlaneGeometry(9.2,2.65),new THREE.MeshBasicMaterial({map:homeTex,side:THREE.DoubleSide}));
     homeSign.position.set(0,9.0,5.25); cottage.add(homeSign);
@@ -562,7 +592,7 @@
     homeLight.position.set(0,4.0,0); cottage.add(homeLight);
     cottage.position.set(-48,0,-48);
     cottage.rotation.y=0;
-    cottage.userData={kind:'home',name:'HOME',description:'A grand glasshouse café beyond the mountain ridge. Click to visit our homepage.',url:null};
+    cottage.userData={kind:'home',name:'VILLAGE HOME',description:'A grand glasshouse café beyond the mountain ridge. Click to visit our homepage.',url:null};
     scene.add(cottage);
     scene.add(cottage);
 
@@ -630,21 +660,21 @@
     // HOME_URL is the homepage opened when the cottage is clicked.
     // ============================================================
     const HOME_URL = "https://example.com";
-    const COFFEE_VANS = [
-      {name:"abc", logo:"aa", logoImage:PHOTOS[0], tagline:"Good coffee, slow mornings.", url:"https://makeawishcafe.com", body:"#e8dfcb", roof:"#52736b", accent:"#c58b55", style:"classic"},
-      {name:"ROAM & ROAST", logo:"R&R", logoImage:PHOTOS[1], tagline:"Specialty coffee on the road.", url:"https://example.com", body:"#d9a36f", roof:"#463a32", accent:"#f0d5a5", style:"retro"},
-      {name:"MORNING POST", logo:"MP", logoImage:PHOTOS[2], tagline:"Your little daily coffee stop.", url:"https://example.com", body:"#d8e1dc", roof:"#a6533e", accent:"#f1d7a8", style:"awning"},
-      {name:"VELVET BEAN", logo:"VB", logoImage:PHOTOS[3], tagline:"Smooth brews, lovely views.", url:"https://example.com", body:"#4b554e", roof:"#d7c5a4", accent:"#d9a76f", style:"modern"},
-      {name:"SUNNY SIDE CAFÉ", logo:"☼", logoImage:PHOTOS[4], tagline:"A brighter kind of coffee.", url:"https://example.com", body:"#e9c85f", roof:"#f5ead1", accent:"#b85e42", style:"awning"},
-      {name:"WILDWOOD COFFEE", logo:"WW", logoImage:PHOTOS[5], tagline:"Forest air and fresh espresso.", url:"https://example.com", body:"#71836a", roof:"#3f4c3e", accent:"#d4b58a", style:"classic"},
-      {name:"CAFÉ NOMAD", logo:"CN", logoImage:PHOTOS[6], tagline:"Take the scenic route.", url:"https://example.com", body:"#d8c6b2", roof:"#637a89", accent:"#bd805e", style:"modern"},
-      {name:"LITTLE BRASS CUP", logo:"LB", logoImage:PHOTOS[7], tagline:"A tiny van with a big heart.", url:"https://example.com", body:"#c28c5b", roof:"#493c32", accent:"#e7c68e", style:"retro"},
-      {name:"MOONBEAM ESPRESSO", logo:"ME", logoImage:PHOTOS[8], tagline:"Coffee beneath the stars.", url:"https://example.com", body:"#58647a", roof:"#d7d0c1", accent:"#e4b779", style:"modern"},
-      {name:"HONEY & OAK", logo:"H&O", logoImage:PHOTOS[9], tagline:"Warm cups, kind company.", url:"https://example.com", body:"#d7b98d", roof:"#65756b", accent:"#f2e6cf", style:"classic"}
+    const MARKET_STALLS = [
+      {name:"THE DAILY MARKET", logo:"DG", logoImage:PHOTOS[0], tagline:"Good things, slow moments.", url:"https://example.com", body:"#e8dfcb", roof:"#52736b", accent:"#c58b55", style:"classic"},
+      {name:"ROAM & ROOT", logo:"R&R", logoImage:PHOTOS[1], tagline:"Little discoveries along the way.", url:"https://example.com", body:"#d9a36f", roof:"#463a32", accent:"#f0d5a5", style:"retro"},
+      {name:"THE MORNING POST", logo:"MP", logoImage:PHOTOS[2], tagline:"A friendly stop along the way.", url:"https://example.com", body:"#d8e1dc", roof:"#a6533e", accent:"#f1d7a8", style:"awning"},
+      {name:"VELVET & PINE", logo:"VB", logoImage:PHOTOS[3], tagline:"Lovely things, lovely views.", url:"https://example.com", body:"#4b554e", roof:"#d7c5a4", accent:"#d9a76f", style:"modern"},
+      {name:"SUNNY SIDE GOODS", logo:"☼", logoImage:PHOTOS[4], tagline:"A brighter kind of day.", url:"https://example.com", body:"#e9c85f", roof:"#f5ead1", accent:"#b85e42", style:"awning"},
+      {name:"WILDWOOD MARKET", logo:"WW", logoImage:PHOTOS[5], tagline:"Forest air and handmade treasures.", url:"https://example.com", body:"#71836a", roof:"#3f4c3e", accent:"#d4b58a", style:"classic"},
+      {name:"NOMAD CORNER", logo:"CN", logoImage:PHOTOS[6], tagline:"Take the scenic route.", url:"https://example.com", body:"#d8c6b2", roof:"#637a89", accent:"#bd805e", style:"modern"},
+      {name:"LITTLE BRASS & CO", logo:"LB", logoImage:PHOTOS[7], tagline:"A tiny stall with a big heart.", url:"https://example.com", body:"#c28c5b", roof:"#493c32", accent:"#e7c68e", style:"retro"},
+      {name:"MOONBEAM MARKET", logo:"ME", logoImage:PHOTOS[8], tagline:"Little wonders beneath the stars.", url:"https://example.com", body:"#58647a", roof:"#d7d0c1", accent:"#e4b779", style:"modern"},
+      {name:"HONEY & OAK", logo:"H&O", logoImage:PHOTOS[9], tagline:"Warm welcomes, kind company.", url:"https://example.com", body:"#d7b98d", roof:"#65756b", accent:"#f2e6cf", style:"classic"}
     ];
 
     const vanPickTargets = [];
-    const coffeeVans = [];
+    const marketVans = [];
     const vanMaterials = [];
     const selectedLabel = document.querySelector('#selectedLabel');
     const selectedHint = document.querySelector('#selectedHint');
@@ -659,7 +689,7 @@
     let hoveredObject = null;
     let pointerMoved = false;
 
-    function makeSignTexture(shop) {
+    function makeSignTexture(shop,index) {
       const c=document.createElement('canvas'); c.width=900; c.height=280;
       const ctx=c.getContext('2d');
       function paint(image=null) {
@@ -677,15 +707,16 @@
           ctx.shadowColor='rgba(255,190,105,.22)'; ctx.shadowBlur=7;
           ctx.fillStyle=shop.accent; ctx.font='bold 76px Georgia'; ctx.fillText(shop.logo,145,135);
         }
-        ctx.shadowBlur=0; ctx.fillStyle='#fff0d6'; ctx.font='bold 54px Georgia';
+        ctx.shadowBlur=0; ctx.fillStyle='#fff0d6'; ctx.font='bold 66px Georgia';
         let name=shop.name;
         while(ctx.measureText(name).width>620 && ctx.font.match(/(\\d+)px/)) {
           const size=Math.max(32,parseInt(ctx.font.match(/(\\d+)px/)[1])-3);
           ctx.font=`bold ${size}px Georgia`;
         }
-        ctx.fillText(name,535,118);
-        ctx.fillStyle='#d8bd91'; ctx.font='italic 25px Georgia';
-        ctx.fillText('COFFEE  •  EST. 2024',535,190);
+        ctx.fillText(name,560,132);
+        ctx.fillStyle='#e8bd7c'; ctx.font='bold 48px Georgia';
+        ctx.textAlign='right'; ctx.fillText(String(index+1).padStart(2,'0'),860,230);
+        ctx.textAlign='center';
       }
       paint();
       const tex=new THREE.CanvasTexture(c); tex.colorSpace=THREE.SRGBColorSpace;
@@ -698,7 +729,7 @@
       return tex;
     }
 
-    function createCoffeeVan(shop,index,position) {
+    function createMarketVan(shop,index,position) {
       const root=new THREE.Group(); root.position.set(position[0],0,position[1]);
       const bodyMat=new THREE.MeshStandardMaterial({color:shop.body,roughness:0.48});
       const roofMat=new THREE.MeshStandardMaterial({color:shop.roof,roughness:0.5});
@@ -742,15 +773,15 @@
         lamp.position.set(2.32,1.2,z); root.add(lamp);
       }
       // Large, softly illuminated dark-and-gold signs: readable from both sides and both ends
-      const signTex=makeSignTexture(shop);
+      const signTex=makeSignTexture(shop,index);
       const signMat=new THREE.MeshBasicMaterial({map:signTex,side:THREE.DoubleSide,toneMapped:false});
-      const sideSignA=new THREE.Mesh(new THREE.PlaneGeometry(3.35,1.04),signMat);
-      sideSignA.position.set(-0.15,3.48,1.23); root.add(sideSignA);
-      const sideSignB=new THREE.Mesh(new THREE.PlaneGeometry(3.35,1.04),signMat);
-      sideSignB.position.set(-0.15,3.48,-1.23); sideSignB.rotation.y=Math.PI; root.add(sideSignB);
-      const endSignA=new THREE.Mesh(new THREE.PlaneGeometry(1.75,0.72),signMat);
+      const sideSignA=new THREE.Mesh(new THREE.PlaneGeometry(3.75,1.18),signMat);
+      sideSignA.position.set(-0.15,3.52,1.23); root.add(sideSignA);
+      const sideSignB=new THREE.Mesh(new THREE.PlaneGeometry(3.75,1.18),signMat);
+      sideSignB.position.set(-0.15,3.52,-1.23); sideSignB.rotation.y=Math.PI; root.add(sideSignB);
+      const endSignA=new THREE.Mesh(new THREE.PlaneGeometry(1.95,0.82),signMat);
       endSignA.position.set(2.36,2.05,0); endSignA.rotation.y=Math.PI/2; root.add(endSignA);
-      const endSignB=new THREE.Mesh(new THREE.PlaneGeometry(1.75,0.72),signMat);
+      const endSignB=new THREE.Mesh(new THREE.PlaneGeometry(1.95,0.82),signMat);
       endSignB.position.set(-2.20,2.05,0); endSignB.rotation.y=-Math.PI/2; root.add(endSignB);
       // Small roof trim
       box(4.0,0.09,2.08,trimMat,0,3.1,0);
@@ -760,9 +791,11 @@
       // Each van gets a distinct roof silhouette and a warm interior glow.
       const roofDetails = index % 4;
       if (roofDetails === 0) {
-        const cup = new THREE.Group();
-        const cupBody = new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.19,0.55,16),new THREE.MeshStandardMaterial({color:0xf4e4c8,roughness:0.45}));
-        cup.add(cupBody); const coffee = new THREE.Mesh(new THREE.CircleGeometry(0.18,16),new THREE.MeshBasicMaterial({color:0x6a3e2b})); coffee.rotation.x=-Math.PI/2; coffee.position.y=0.28; cup.add(coffee); cup.position.set(-0.65,3.38,0); root.add(cup);
+        const roofLantern = new THREE.Group();
+        const lanternBody = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.48,0.42),new THREE.MeshStandardMaterial({color:0xf4dfb8,emissive:0xffb85c,emissiveIntensity:0.55}));
+        const lanternCap = new THREE.Mesh(new THREE.ConeGeometry(0.34,0.22,4),trimMat);
+        lanternCap.position.y=0.34; roofLantern.add(lanternBody,lanternCap);
+        roofLantern.position.set(-0.65,3.38,0); root.add(roofLantern);
       } else if (roofDetails === 1) {
         for (let k=-1;k<=1;k++) box(0.09,0.32,2.05,trimMat,k*0.62,3.25,0);
       } else if (roofDetails === 2) {
@@ -776,33 +809,99 @@
       const angle = Math.atan2(position[1], position[0]);
       root.rotation.y = Math.PI - angle;
       root.userData={kind:'van',shop,index};
-      scene.add(root); coffeeVans.push(root); vanPickTargets.push(...root.children.filter(o=>o.isMesh));
+      scene.add(root); marketVans.push(root); vanPickTargets.push(...root.children.filter(o=>o.isMesh));
       return root;
     }
 
     const vanRadius = 19.5;
-    const vanSpots = COFFEE_VANS.map((_,i) => {
-      const angle = -Math.PI/2 + (i / COFFEE_VANS.length) * Math.PI * 2;
+    const vanSpots = MARKET_STALLS.map((_,i) => {
+      const angle = -Math.PI/2 + (i / MARKET_STALLS.length) * Math.PI * 2;
       return [Math.cos(angle) * vanRadius, Math.sin(angle) * vanRadius];
     });
-    COFFEE_VANS.forEach((shop,i)=>createCoffeeVan(shop,i,vanSpots[i]));
 
-    // Put the home cottage in the village centre, slightly behind the coffee stops
+    MARKET_STALLS.forEach((shop,i)=>createMarketVan(shop,i,vanSpots[i]));
+
+    // Numbered stall directory: choose a stall to move the view to that location.
+    const exploreList=document.querySelector('#exploreList');
+    const exploreItems=document.querySelector('#exploreItems');
+    document.querySelector('#exploreToggle').addEventListener('click',()=>{
+      const open=exploreList.classList.toggle('open');
+      document.querySelector('#exploreToggle').setAttribute('aria-expanded',String(open));
+    });
+    document.querySelector('#closeExplore').addEventListener('click',()=>exploreList.classList.remove('open'));
+    MARKET_STALLS.forEach((stall,i)=>{
+      const button=document.createElement('button');
+      button.type='button';
+      button.innerHTML='<span>'+String(i+1).padStart(2,'0')+'</span>'+stall.name;
+      button.addEventListener('click',()=>{
+        const destination=marketVans[i].position.clone();
+        const outward=destination.clone().normalize();
+        camera.position.copy(destination.clone().add(outward.multiplyScalar(8)).add(new THREE.Vector3(0,5,0)));
+        controls.target.copy(destination);
+        controls.update();
+        selectedLabel.textContent=String(i+1).padStart(2,'0')+' · '+stall.name;
+        selectedHint.textContent='You are visiting this stall. Walk around to explore nearby.';
+        exploreList.classList.remove('open');
+      });
+      exploreItems.appendChild(button);
+    });
+
+    // Step-by-step walking: WASD / arrow keys on desktop, direction pad on phones.
+    const walkState={forward:false,back:false,left:false,right:false};
+    const walkKeys={KeyW:'forward',ArrowUp:'forward',KeyS:'back',ArrowDown:'back',
+      KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right'};
+    window.addEventListener('keydown',event=>{
+      const direction=walkKeys[event.code];
+      if(direction){walkState[direction]=true;event.preventDefault();}
+    });
+    window.addEventListener('keyup',event=>{
+      const direction=walkKeys[event.code];
+      if(direction)walkState[direction]=false;
+    });
+    window.addEventListener('blur',()=>Object.keys(walkState).forEach(k=>walkState[k]=false));
+    document.querySelectorAll('[data-walk]').forEach(button=>{
+      const direction=button.dataset.walk;
+      button.addEventListener('pointerdown',event=>{event.preventDefault();walkState[direction]=true;});
+      ['pointerup','pointercancel','pointerleave'].forEach(type=>
+        button.addEventListener(type,event=>{event.preventDefault();walkState[direction]=false;}));
+    });
+    function stepWalk(){
+      const forward=new THREE.Vector3();
+      camera.getWorldDirection(forward);forward.y=0;forward.normalize();
+      const right=new THREE.Vector3().crossVectors(forward,new THREE.Vector3(0,1,0)).normalize();
+      const movement=new THREE.Vector3();
+      if(walkState.forward)movement.add(forward);
+      if(walkState.back)movement.sub(forward);
+      if(walkState.right)movement.add(right);
+      if(walkState.left)movement.sub(right);
+      if(movement.lengthSq()>0){
+        movement.normalize().multiplyScalar(innerWidth<700?0.15:0.22);
+        camera.position.add(movement);controls.target.add(movement);
+        const limit=62;
+        camera.position.x=THREE.MathUtils.clamp(camera.position.x,-limit,limit);
+        camera.position.z=THREE.MathUtils.clamp(camera.position.z,-limit,limit);
+        controls.target.x=THREE.MathUtils.clamp(controls.target.x,-limit,limit);
+        controls.target.z=THREE.MathUtils.clamp(controls.target.z,-limit,limit);
+      }
+    }
+
+
+    // Put the home cottage in the village centre, slightly behind the market stops
     cottage.position.set(-29,0,-24);
     vanPickTargets.push(...cottage.children.filter(o=>o.isMesh));
 
     function setSelected(item) {
       if (!item) {
         selectedLabel.textContent='Explore the village';
-        selectedHint.textContent='Hover over a coffee van to discover its shop sign. Click to visit its website.';
+        selectedHint.textContent='Choose a stall to explore, or wander around the village.';
         return;
       }
       if(item.userData.kind==='home') {
         selectedLabel.textContent='⌂ Your Cosy Home';
-        selectedHint.textContent='Click the cottage to return to your homepage.';
+        selectedHint.textContent='Visit the village home.';
       } else {
         selectedLabel.textContent=item.userData.shop.name;
-        selectedHint.textContent=item.userData.shop.tagline+'  ·  Click to visit website.';
+        selectedHint.textContent='VAN '+String(item.userData.index+1).padStart(2,'0')+' · '+item.userData.shop.tagline+' · Click to visit';
       }
     }
 
@@ -824,15 +923,15 @@
       document.body.style.cursor='pointer';
       if(item.userData.kind==='home') {
         hoverName.textContent='⌂ YOUR COSY HOME';
-        hoverDesc.textContent='A warm little cottage. Click to return to your homepage.';
+        hoverDesc.textContent='A warm place at the edge of the village.';
         hoverCard.querySelector('.eyebrow').textContent='Home sweet home';
         hoverLogo.style.display='none';
         hoverLink.textContent='CLICK TO GO HOME ↗';
         hoverLink.href=HOME_URL;
       } else {
         const s=item.userData.shop;
-        hoverName.textContent=s.name; hoverDesc.textContent=s.tagline;
-        hoverCard.querySelector('.eyebrow').textContent='☕ COFFEE STOP';
+        hoverName.textContent='VAN '+String(item.userData.index+1).padStart(2,'0')+' · '+s.name; hoverDesc.textContent=s.tagline;
+        hoverCard.querySelector('.eyebrow').textContent='MARKET STALL';
         if(s.logoImage) { hoverLogo.src=s.logoImage; hoverLogo.style.display='block'; }
         else { hoverLogo.removeAttribute('src'); hoverLogo.style.display='none'; }
         hoverLink.textContent='CLICK TO VISIT WEBSITE ↗';
@@ -848,7 +947,7 @@
     hoverLink.addEventListener('click', event => {
       if(!hoverLink.getAttribute('href') || hoverLink.getAttribute('href')==='#' || hoverLink.href==='https://example.com/') {
         event.preventDefault();
-        toast.textContent='Please add this shop website in the COFFEE_VANS list.';
+        toast.textContent='Please add this stall website in the market stall list.';
         toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2600);
       }
     });
@@ -1222,6 +1321,7 @@
           leg.rotation.z=moving?Math.sin(time*d.gait+d.phase+(index%2)*Math.PI)*.24:0;
         });
       });
+      stepWalk();
       controls.update();
       renderer.render(scene, camera);
     }
