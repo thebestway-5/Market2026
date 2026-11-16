@@ -1,92 +1,1215 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" translate="yes">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Coffee Village · Christmas Market</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101b2a;color:#f7eee0;font-family:system-ui,"Segoe UI",sans-serif}
-canvas{display:block}.brand{position:fixed;z-index:3;top:20px;left:22px;pointer-events:none;text-shadow:0 2px 14px #000}
-.brand h1{margin:0;font:500 clamp(22px,3vw,36px) Georgia,serif;letter-spacing:.1em}.brand p{font-size:10px;letter-spacing:.2em;color:#e7d2b4}
-#toggle{position:fixed;z-index:5;right:18px;top:18px;border:1px solid #d9b77b;border-radius:30px;padding:12px 17px;background:#302722eF;color:#ffe7c2;cursor:pointer}
-#panel{display:none;position:fixed;z-index:4;right:18px;top:72px;width:min(330px,calc(100vw - 28px));max-height:75vh;overflow:auto;padding:16px;border:1px solid #d9b77b66;border-radius:16px;background:#211f1bed;backdrop-filter:blur(14px)}
-#panel.open{display:block}.row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0;font-size:13px}
-select,input,button{accent-color:#d8b477}select{max-width:170px;padding:7px;border-radius:8px;background:#3a342d;color:#fff}
-#panel button{padding:8px 12px;border-radius:8px;background:#4b3b2b;color:#fff;border:1px solid #9f8155}
-#hint{position:fixed;z-index:2;left:20px;bottom:18px;font-size:12px;line-height:1.7;text-shadow:0 2px 8px #000;pointer-events:none}
-#info{display:none;position:fixed;z-index:6;left:50%;bottom:24px;transform:translateX(-50%);width:min(300px,calc(100vw - 28px));padding:12px 16px;border:1px solid #d9b77b;border-radius:14px;background:#201c19ed;text-align:center;pointer-events:none}
-#info strong{display:block;color:#f4d19b;font:20px Georgia,serif;margin-bottom:4px}
-#status{position:fixed;z-index:10;left:50%;top:50%;transform:translate(-50%,-50%);max-width:min(90vw,600px);padding:16px 20px;border-radius:12px;background:#241b19eF;color:#ffe4c2;text-align:center;display:none}
-@media(max-width:650px){.brand{left:12px;top:10px}.brand p{font-size:8px}.brand h1{font-size:21px}#toggle{right:10px;top:10px;padding:10px 12px}#panel{right:10px;top:62px}#hint{left:12px;bottom:10px;font-size:10px}}
-</style>
-</head>
-<body>
-<div class="brand"><h1>✦ COFFEE VILLAGE</h1><p>A CHRISTMAS MARKET · COFFEE & CANDLELIGHT</p></div>
-<button id="toggle">⚙ SETTINGS</button>
-<section id="panel">
-  <h3 style="color:#e8c48f;margin:0 0 12px">Village settings · 场景设置</h3>
-  <div class="row"><label for="season">Season / 季节</label><select id="season"><option value="winter">Winter · 冬</option><option value="spring">Spring · 春</option><option value="summer">Summer · 夏</option><option value="autumn">Autumn · 秋</option></select></div>
-  <div class="row"><label for="night">Night lighting</label><input id="night" type="checkbox" checked></div>
-  <div class="row"><label for="snow">Snowfall</label><input id="snow" type="checkbox" checked></div>
-  <div class="row"><label for="music">Music</label><select id="music"><option value="0">Song 1</option><option value="1">Song 2</option><option value="2">Song 3</option></select></div>
-  <div class="row"><label for="volume">Volume</label><input id="volume" type="range" min="0" max="1" step=".01" value=".35"></div>
-  <div class="row"><button id="play">▶ Play / Pause</button><button id="reset">Reset camera</button></div>
-  <p style="font-size:11px;color:#cbb99f;line-height:1.5">音乐需要你放入 assets/music/song1.mp3 至 song3.mp3。每位访客的设置只影响自己的浏览器。</p>
-</section>
-<div id="hint"><b>EXPLORE</b> Hover / tap a coffee van to see its details.<br>Click once to select; click again to visit on mobile.<br>Drag to rotate · Scroll / pinch to zoom.</div>
-<div id="info"><strong id="infoName"></strong><span id="infoDesc"></span></div>
-<div id="status">正在加载 3D 场景…</div>
-<audio id="audio" preload="none"></audio>
-<script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"}}
-</script>
-<script type="module">
-import * as THREE from 'three';
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Vintage Coffee Village · Coffee Van World</title>
 
-const status=document.querySelector('#status');
-function showError(msg){status.style.display='block';status.textContent='3D 场景加载失败：'+msg+'。请确认网络可以连接 jsDelivr CDN，并使用最新版 Chrome / Edge。';}
-window.addEventListener('error',e=>{if(e.message)showError(e.message)});
-window.addEventListener('unhandledrejection',e=>showError(String(e.reason||'module error')));
-try{
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x111d2a);scene.fog=new THREE.Fog(0x243545,48,105);
-const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,220);camera.position.set(39,30,46);
-const renderer=new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;document.body.appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,1,0);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*.48;controls.minDistance=20;controls.maxDistance=78;controls.enablePan=false;
-scene.add(new THREE.HemisphereLight(0xcfe4ff,0x594333,.75));
-const moon=new THREE.DirectionalLight(0xb9d3ff,1.05);moon.position.set(-20,35,18);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);scene.add(moon);
-const warm=new THREE.PointLight(0xffa94d,2.2,34);warm.position.set(0,5,0);scene.add(warm);
-const mat=(color,roughness=.85,emissive=0x000000)=>new THREE.MeshStandardMaterial({color,roughness,emissive,emissiveIntensity:emissive?1.2:0});
-const ground=new THREE.Mesh(new THREE.CircleGeometry(48,96),mat(0xcbd5dc));ground.rotation.x=-Math.PI/2;ground.position.y=-.12;ground.receiveShadow=true;scene.add(ground);
-const snowMat=mat(0xf1f5f7),wood=mat(0x684832),red=mat(0x8e3434),green=mat(0x234b3d),gold=mat(0xe6b85e,.35,0x9a5b18);
-function box(parent,w,h,d,m,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
-function sphere(parent,r,m,x,y,z){const o=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),m);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
-function tree(x,z,s=1){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.13,.2,1.2,8),wood);trunk.position.y=.6;g.add(trunk);for(let i=0;i<4;i++){const c=new THREE.Mesh(new THREE.ConeGeometry(1.25-i*.19,2.1,9),green);c.position.y=1.3+i*.82;c.castShadow=true;g.add(c)}g.scale.setScalar(s);for(let i=0;i<6;i++){const b=sphere(g,.11,gold,Math.cos(i)*.75,1.4+(i%3)*.8,Math.sin(i)*.75)}}
-for(let i=0;i<24;i++){const a=i/24*Math.PI*2,r=27+(i%3)*2;tree(Math.cos(a)*r,Math.sin(a)*r,.8+(i%4)*.12)}
-// snowy distant mountains
-for(let i=0;i<10;i++){const a=i/10*Math.PI*2,r=43;const m=new THREE.Mesh(new THREE.ConeGeometry(7+(i%3),13+(i%4)*2,7),mat(0x65798a));m.position.set(Math.cos(a)*r,6,Math.sin(a)*r);scene.add(m);const cap=new THREE.Mesh(new THREE.ConeGeometry(2.8,4,7),snowMat);cap.position.set(m.position.x,11,m.position.z);scene.add(cap)}
-// central fire ring
-const stone=mat(0x77736d),fireMat=new THREE.MeshStandardMaterial({color:0xff762d,emissive:0xff3d08,emissiveIntensity:2});
-for(let i=0;i<12;i++){const a=i/12*Math.PI*2;sphere(scene,.42,stone,Math.cos(a)*2,.25,Math.sin(a)*2)}
-const flame=new THREE.Group();scene.add(flame);for(let i=0;i<5;i++){const f=new THREE.Mesh(new THREE.ConeGeometry(.38-i*.035,1.7+i*.12,8),fireMat);f.position.set(Math.cos(i*2)*.25,.9,Math.sin(i*2)*.25);flame.add(f)}
-// home cottage placed at village edge
-const home=new THREE.Group();home.position.set(0,0,-20);scene.add(home);box(home,6,3.6,5,mat(0xe7d1b4),0,1.8,0);const roof=new THREE.Mesh(new THREE.ConeGeometry(4.8,3.2,4),red);roof.rotation.y=Math.PI/4;roof.position.y=5;roof.scale.z=.8;home.add(roof);box(home,1.1,2,0.2,wood,0,1,2.6);const sign=box(home,4.5,.8,.18,gold,0,3.4,2.7);const signCanvas=document.createElement('canvas');signCanvas.width=512;signCanvas.height=128;const ctx=signCanvas.getContext('2d');ctx.fillStyle='#3c2820';ctx.fillRect(0,0,512,128);ctx.fillStyle='#f7dfb1';ctx.font='bold 64px Georgia';ctx.textAlign='center';ctx.fillText('HOME',256,84);sign.material=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(signCanvas)});
-const vanData=Array.from({length:10},(_,i)=>({name:['Alpine Coffee','The Christmas Bean','Cocoa Caravan','Snowflake Espresso','Golden Mug','Little Reindeer Café','Winter Roast','Candlelight Coffee','Frost & Foam','The Cozy Cup'][i],desc:'Welcome to our little coffee stop. Fresh coffee, warm treats and Christmas cheer.',url:'https://example.com'}));
-const vanGroups=[];
-vanData.forEach((v,i)=>{const a=i/10*Math.PI*2,r=15.5;const g=new THREE.Group();g.position.set(Math.cos(a)*r,0,Math.sin(a)*r);g.rotation.y=-a+Math.PI/2;scene.add(g);const body=box(g,5,2.25,2.8,mat([0x9a4039,0x315b50,0x49627c,0xc18b4e,0x6b526e][i%5]),0,1.35,0);box(g,2.8,1.15,2.86,mat(0xe9d9bc),0,2.95,0);box(g,2.3,.85,.08,mat(0x3a2822),0,2.1,1.46);box(g,2.2,.22,.1,gold,0,3.55,1.48);for(const x of [-1.55,1.55]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.24,20),mat(0x17191b));w.rotation.z=Math.PI/2;w.position.set(x,.65,1.35);g.add(w);const hub=sphere(g,.22,gold,x,.65,1.49)}const awning=box(g,3.2,.18,1.05,red,0,2.35,1.85);awingFix(awning);function awingFix(o){o.rotation.x=-.12}const label=box(g,2.8,.48,.1,gold,0,3.3,-1.47);g.userData.van=v;vanGroups.push(g)});
-function animal(x,z,type,color){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);const fur=mat(color);sphere(g,.48,fur,0,.55,0);sphere(g,.34,fur,0,1.05,.03);sphere(g,.11,mat(0x211b18),-.16,1.12,.3);sphere(g,.11,mat(0x211b18),.16,1.12,.3);if(type==='penguin'){sphere(g,.31,mat(0xf2eee2),0,.62,.29);box(g,.13,.55,.12,mat(0x242d37),-.43,.65,0);box(g,.13,.55,.12,mat(0x242d37),.43,.65,0)}else if(type==='reindeer'){for(let s of [-1,1]){const ant=new THREE.Mesh(new THREE.CylinderGeometry(.035,.05,.7,6),gold);ant.position.set(s*.22,1.62,0);ant.rotation.z=s*.35;g.add(ant)}}else{sphere(g,.22,fur,0,.35,-.48)}return g}
-const critters=[];const types=['fox','penguin','reindeer','bear','rabbit','cat','dog','squirrel','panda','hedgehog'];const colors=[0xb65e32,0x303b48,0x8b5b32,0x72513e,0xe7e0d4,0x8b8880,0x9a7655,0xa66d37,0xeee8d8,0x78624b];for(let i=0;i<30;i++){const a=Math.random()*Math.PI*2,r=8+Math.random()*23;const t=i%types.length;const c=animal(Math.cos(a)*r,Math.sin(a)*r,types[t],colors[t]);c.userData={vx:(Math.random()-.5)*.045,vz:(Math.random()-.5)*.045,turn:Math.random()*100};critters.push(c)}
-// snowfall
-const snowCount=900,snowGeo=new THREE.BufferGeometry(),snowPos=new Float32Array(snowCount*3);for(let i=0;i<snowCount;i++){snowPos[i*3]=(Math.random()-.5)*90;snowPos[i*3+1]=Math.random()*35;snowPos[i*3+2]=(Math.random()-.5)*90}snowGeo.setAttribute('position',new THREE.BufferAttribute(snowPos,3));const snow=new THREE.Points(snowGeo,new THREE.PointsMaterial({color:0xffffff,size:.16,transparent:true,opacity:.8}));scene.add(snow);
-const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2(),info=document.querySelector('#info');let armed=null;function pick(e){pointer.x=e.clientX/innerWidth*2-1;pointer.y=-(e.clientY/innerHeight)*2+1;raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(vanGroups,true);if(hits.length){let o=hits[0].object;while(o&&!o.userData.van)o=o.parent;if(o&&o.userData.van)return o}return null}
-renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){const o=pick(e);if(o)show(o);else if(!armed)info.style.display='none'}});
-function show(o){const v=o.userData.van;document.querySelector('#infoName').textContent=v.name;document.querySelector('#infoDesc').textContent=v.desc;info.style.display='block';}
-renderer.domElement.addEventListener('pointerdown',e=>{const o=pick(e);if(!o){armed=null;info.style.display='none';return}const v=o.userData.van;show(o);if(e.pointerType==='touch'){if(armed===o){window.open(v.url,'_blank','noopener');armed=null}else armed=o}else{window.open(v.url,'_blank','noopener')}});
-const audio=document.querySelector('#audio');let track=0;function loadTrack(){audio.src=`assets/music/song${track+1}.mp3`;audio.load()}loadTrack();document.querySelector('#music').addEventListener('change',e=>{track=+e.target.value;loadTrack();audio.play().catch(()=>{})});document.querySelector('#volume').addEventListener('input',e=>audio.volume=+e.target.value);audio.volume=.35;document.querySelector('#play').onclick=()=>{if(audio.paused)audio.play().catch(()=>{});else audio.pause()};
-document.querySelector('#toggle').onclick=()=>document.querySelector('#panel').classList.toggle('open');document.querySelector('#reset').onclick=()=>{camera.position.set(39,30,46);controls.target.set(0,1,0);controls.update()};
-document.querySelector('#night').addEventListener('change',e=>{moon.intensity=e.target.checked?1.05:2.1;scene.background.set(e.target.checked?0x111d2a:0x9db8ce)});document.querySelector('#snow').addEventListener('change',e=>snow.visible=e.target.checked);document.querySelector('#season').addEventListener('change',e=>{const cols={winter:0xcbd5dc,spring:0x7f9d77,summer:0x78935e,autumn:0xa77b4e};ground.material.color.setHex(cols[e.target.value])});
-const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();controls.update();flame.rotation.y=t*.7;flame.scale.y=.92+Math.sin(t*9)*.12;warm.intensity=1.8+Math.sin(t*10)*.4;const p=snow.geometry.attributes.position;for(let i=0;i<snowCount;i++){p.array[i*3+1]-=.035;if(p.array[i*3+1]<0)p.array[i*3+1]=35}p.needsUpdate=true;critters.forEach(c=>{const d=c.userData;c.position.x+=d.vx;c.position.z+=d.vz;if(Math.random()<.006){d.vx=(Math.random()-.5)*.05;d.vz=(Math.random()-.5)*.05}if(Math.abs(c.position.x)>34)d.vx*=-1;if(Math.abs(c.position.z)>34)d.vz*=-1;c.rotation.y=Math.atan2(d.vx,d.vz);c.position.y=Math.abs(Math.sin(t*5+c.id))*.045});renderer.render(scene,camera)}animate();status.style.display='none';
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7))});
-}catch(err){console.error(err);showError(err.message||String(err))}
-</script>
-</body></html>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; color:#f7eee0;
+      background:#17212b; font-family: "Segoe UI","Noto Sans SC",system-ui,sans-serif; }
+    canvas { display:block; }
+    .vignette { position:fixed; inset:0; z-index:1; pointer-events:none;
+      background:linear-gradient(180deg,rgba(7,13,19,.16),transparent 42%,rgba(5,9,13,.30)),
+      radial-gradient(ellipse at center,transparent 38%,rgba(5,9,13,.24)); }
+    .brand { position:fixed; z-index:3; left:28px; top:24px; pointer-events:none;
+      text-shadow:0 2px 22px #000b; }
+    .brand h1 { margin:0; font-family:Georgia,serif; font-size:clamp(23px,3vw,38px);
+      font-weight:500; letter-spacing:.09em; }
+    .brand p { margin:7px 0 0; color:#ead9c2; font-size:10px; letter-spacing:.22em; text-transform:uppercase; }
+    .brand-mark { display:inline-block; color:#e3b879; margin-right:8px; }
+    .panel { position:fixed; z-index:4; top:18px; right:18px; width:min(340px,calc(100vw - 28px));
+      max-height:calc(100vh - 36px); overflow:auto; padding:18px;
+      border:1px solid rgba(239,218,187,.26); border-radius:19px;
+      background:linear-gradient(145deg,rgba(49,35,29,.92),rgba(24,34,43,.90));
+      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+      box-shadow:0 18px 55px #0006, inset 0 1px rgba(255,255,255,.08); }
+    .panel-title { margin:0 0 10px; color:#e4bd87; font-size:10px; letter-spacing:.2em; text-transform:uppercase; }
+    .section { padding-bottom:12px; margin-bottom:13px; border-bottom:1px solid rgba(255,255,255,.10); }
+    .row { display:flex; min-height:35px; align-items:center; justify-content:space-between; gap:10px;
+      color:#eee5d8; font-size:12px; }
+    select, button { color:#f7eee0; border:1px solid rgba(255,255,255,.2); border-radius:10px;
+      background:rgba(255,255,255,.08); font:inherit; }
+    select { width:145px; padding:8px 9px; outline:none; }
+    select option { color:#18232b; }
+    input[type="range"] { width:145px; accent-color:#dfb77d; }
+    input[type="checkbox"] { width:17px; height:17px; accent-color:#d6ad72; cursor:pointer; }
+    button { min-height:40px; padding:8px 13px; cursor:pointer; transition:background .2s ease,border-color .2s ease; touch-action:manipulation; }
+    button:focus-visible, select:focus-visible, input:focus-visible { outline:2px solid #e4bd87; outline-offset:3px; }
+    .settings-toggle { position:fixed; z-index:6; top:22px; right:22px; display:flex; align-items:center; gap:9px;
+      min-height:48px; padding:0 16px; border:1px solid rgba(220,190,145,.72); border-radius:999px;
+      color:#f8e7c9; background:linear-gradient(135deg,rgba(74,39,35,.97),rgba(28,43,48,.97));
+      box-shadow:0 8px 28px #0007, inset 0 1px rgba(255,255,255,.12); letter-spacing:.14em; font-size:10px; }
+    .settings-toggle .gear { font-size:20px; line-height:1; color:#e9bd7c; }
+    .panel { display:none; top:82px; right:22px; width:min(340px,calc(100vw - 28px)); max-height:calc(100vh - 104px); }
+    .panel.open { display:block; animation:panelIn .22s ease-out; }
+    @keyframes panelIn { from { opacity:0; transform:translateY(-8px) scale(.98); } to { opacity:1; transform:none; } }
+    .atmosphere { border:0; padding:0; margin:0 0 13px; }
+    .atmosphere summary { list-style:none; display:flex; align-items:center; justify-content:space-between; gap:10px;
+      min-height:48px; padding:8px 11px; border:1px solid rgba(239,218,187,.22); border-radius:12px;
+      background:rgba(223,183,125,.08); color:#f2dfc4; cursor:pointer; font-size:12px; touch-action:manipulation; }
+    .atmosphere summary::-webkit-details-marker { display:none; }
+    .atmosphere summary::after { content:'＋'; color:#e4bd87; font-size:18px; }
+    .atmosphere[open] summary::after { content:'－'; }
+    .atmosphere-content { padding:12px 2px 0; }
+    .atmosphere .panel-title { margin-bottom:8px; }
+    button:hover { background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.42); transform:translateY(-1px); }
+    .music-controls { display:grid; grid-template-columns:36px 1fr 36px; align-items:center; gap:8px; }
+    #trackName { overflow:hidden; color:#e9e1d4; font-size:11px; text-align:center; text-overflow:ellipsis; white-space:nowrap; }
+    .selected-card { border:1px solid rgba(226,190,139,.28); border-radius:12px; padding:10px 11px;
+      background:rgba(223,183,125,.08); margin-top:7px; }
+    #selectedLabel { color:#f4e5d0; font-family:Georgia,serif; font-size:15px; }
+    #selectedHint { margin-top:4px; color:#c8b8a4; font-size:10px; line-height:1.5; }
+    .help { position:fixed; z-index:3; left:28px; bottom:22px; max-width:360px; color:rgba(250,240,225,.86);
+      font-size:11px; line-height:1.85; text-shadow:0 1px 9px #000; pointer-events:none; }
+    .help strong { color:#f1c98f; font-weight:600; }
+    .hover-card { position:fixed; z-index:8; display:none; min-width:190px; max-width:245px; padding:12px 14px;
+      color:#f7eee0; border:1px solid rgba(239,207,161,.42); border-radius:14px;
+      background:rgba(31,29,25,.91); backdrop-filter:blur(14px); box-shadow:0 12px 35px #0008;
+      pointer-events:none; transform:translate(14px,14px); }
+    .hover-card .eyebrow { color:#d8ae77; font-size:9px; letter-spacing:.18em; text-transform:uppercase; }
+    .hover-card .shop-name { margin-top:4px; font-family:Georgia,serif; font-size:19px; }
+    .hover-card .shop-desc { margin-top:5px; color:#d6c8b6; font-size:10px; line-height:1.5; }
+    .hover-card .shop-action { display:inline-block; margin-top:9px; color:#e8c28e; font-size:10px; letter-spacing:.10em;
+      text-decoration:none; border:1px solid rgba(232,194,142,.45); border-radius:999px; padding:8px 11px; }
+    .hover-card .shop-action:hover { background:rgba(232,194,142,.14); }
+    .hover-logo { display:none; width:54px; height:54px; object-fit:contain; border-radius:9px; background:#fff;
+      padding:4px; margin-top:8px; }
+    .animal-note { position:fixed; z-index:3; right:22px; bottom:20px; color:#f3e4cf; font-size:10px;
+      text-shadow:0 1px 8px #000; pointer-events:none; opacity:.82; }
+    .toast { position:fixed; z-index:7; left:50%; bottom:24px; transform:translateX(-50%);
+      padding:9px 14px; border:1px solid #e0bd8c55; border-radius:30px; background:#211e1bdc;
+      color:#f5e5cf; font-size:11px; opacity:0; transition:opacity .25s; pointer-events:none; }
+    .toast.show { opacity:1; }
+    @media (max-width:650px) {
+      .brand { top:12px; left:13px; }
+      .brand h1 { font-size:clamp(20px,6vw,27px); }
+      .brand p { font-size:8px; letter-spacing:.14em; }
+      .settings-toggle { top:12px; right:12px; min-height:46px; padding:0 14px; }
+      .panel { top:68px; bottom:auto; right:10px; width:min(330px,calc(100vw - 20px));
+        max-height:min(72vh,560px); padding:12px; border-radius:16px; }
+      .panel .section { padding-bottom:9px; margin-bottom:9px; }
+      .row { min-height:42px; gap:8px; font-size:13px; }
+      select { width: min(160px,56%); min-height:40px; font-size:13px; }
+      input[type="range"] { width:min(155px,52%); min-height:28px; }
+      input[type="checkbox"] { width:21px; height:21px; }
+      button { min-height:42px; padding:8px 12px; font-size:13px; }
+      .music-controls { grid-template-columns:44px 1fr 44px; gap:7px; }
+      #trackName { font-size:12px; }
+      .help { left:13px; top:76px; bottom:auto; max-width:calc(100vw - 26px); font-size:10px; }
+      .hover-card { left:12px !important; right:12px; top:auto !important; bottom:14px; max-width:none; width:auto;
+        transform:none; padding:12px 14px; pointer-events:none; }
+      .hover-card .shop-name { font-size:18px; }
+      .hover-card .shop-action { min-height:40px; display:inline-flex; align-items:center; }
+      .hover-logo { width:48px; height:48px; }
+      .animal-note { display:none; }
+    }
+    @media (max-height:620px) and (max-width:650px) {
+      .panel { max-height:48vh; }
+      .help { display:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="brand">
+    <h1><span class="brand-mark">✦</span>COFFEE VILLAGE</h1>
+    <p>A CHRISTMAS MARKET · COFFEE &amp; CANDLELIGHT</p>
+  </div>
+
+  <button class="settings-toggle" id="settingsToggle" type="button" aria-label="Open settings" aria-expanded="false" title="Settings">
+    <span class="gear">⚙</span><span class="settings-word">SETTINGS</span>
+  </button>
+  <section class="panel" id="settingsPanel" aria-label="Village settings">
+    <details class="atmosphere">
+      <summary><span>✦</span><span style="flex:1">SCENE ATMOSPHERE · 场景氛围</span><span style="color:#bda98f;font-size:10px">设置</span></summary>
+      <div class="atmosphere-content">
+        <div class="panel-title">Scene atmosphere · 场景氛围</div>
+        <div class="row"><label for="season">Season / 四季</label>
+          <select id="season">
+            <option value="spring">Spring · 春</option><option value="summer">Summer · 夏</option>
+            <option value="autumn">Autumn · 秋</option><option value="winter" selected>Winter · 冬</option>
+          </select>
+        </div>
+        <div class="row"><label for="night">Night ambience</label><input id="night" type="checkbox" checked></div>
+        <div class="row"><label for="stars">Show stars</label><input id="stars" type="checkbox" checked></div>
+        <div class="row"><label for="sunlight">Sunlight</label><input id="sunlight" type="range" min="0" max="2.5" step="0.05" value="1.1"></div>
+      </div>
+    </details>
+
+    <div class="section">
+      <div class="panel-title">Your selection · 当前选择</div>
+      <div class="selected-card">
+        <div id="selectedLabel">Explore the village</div>
+        <div id="selectedHint">Hover over a coffee van to discover its shop sign. Click to visit its website.</div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <span>Camera view</span>
+        <button id="resetView" type="button">↺ Reset view</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="panel-title">Village soundtrack · 音乐</div>
+      <div class="row"><label for="playlist">Playlist</label><select id="playlist"></select></div>
+      <div class="music-controls">
+        <button id="previous" aria-label="Previous track">‹</button>
+        <span id="trackName">Choose a track</span>
+        <button id="next" aria-label="Next track">›</button>
+      </div>
+      <div class="row"><label for="volume">Volume</label><input id="volume" type="range" min="0" max="1" step="0.01" value="0.35"></div>
+    </div>
+    <div class="row"><span style="color:#cdb99f;font-size:10px">10 independent coffee stops</span><span style="color:#e4bd87;font-size:10px">CLICK TO EXPLORE ↗</span></div>
+  </section>
+
+  <div class="help">
+    <strong>DESKTOP</strong> Hover to preview; click the van or cottage to visit its website.<br>
+    <strong>MOBILE</strong> Tap once for details; tap the same object again to visit.<br>
+    Drag to rotate · Scroll/pinch to zoom
+  </div>
+  <div class="hover-card" id="hoverCard">
+    <div class="eyebrow">Coffee stop · Welcome</div>
+    <div class="shop-name" id="hoverName">Coffee Shop</div>
+    <div class="shop-desc" id="hoverDesc">A little coffee story.</div>
+    <img class="hover-logo" id="hoverLogo" alt="Coffee shop logo">
+    <a class="shop-action" id="hoverLink" href="#" target="_blank" rel="noopener noreferrer">CLICK TO VISIT WEBSITE ↗</a>
+  </div>
+  <div class="toast" id="toast">Opening your destination…</div>
+  <div class="animal-note">🐿️ Little woodland friends are wandering around the fire</div>
+  <div class="vignette"></div>
+  <audio id="audio" preload="none"></audio>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ============================================================
+    // LOGO IMAGE FILES — photo1.jpg to photo6.jpg are used as the
+    // logos of coffee vans 1–6. Vans 7–10 use their text logo.
+    // Put your own logo images in assets/photos/. JPG, PNG and WEBP work.
+    // ============================================================
+    const PHOTOS = [
+      'assets/photos/photo1.jpg',
+      'assets/photos/photo2.jpg',
+      'assets/photos/photo3.jpg',
+      'assets/photos/photo4.jpg',
+      'assets/photos/photo5.jpg',
+      'assets/photos/photo6.jpg'
+    ];
+
+    const PLAYLIST = [
+      { title: '山间微风', src: 'assets/music/song1.mp3' },
+      { title: '炉火旁的夜晚', src: 'assets/music/song2.mp3' },
+      { title: '雪落无声', src: 'assets/music/song3.mp3' }
+    ];
+
+    // Settings are intentionally tucked behind one clear gear icon.
+    const settingsToggle = document.querySelector('#settingsToggle');
+    const settingsPanel = document.querySelector('#settingsPanel');
+    settingsToggle.addEventListener('click', () => {
+      const open = settingsPanel.classList.toggle('open');
+      settingsToggle.setAttribute('aria-expanded', String(open));
+      settingsToggle.setAttribute('aria-label', open ? 'Close settings' : 'Open settings');
+      settingsToggle.querySelector('.gear').textContent = open ? '×' : '⚙';
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { settingsPanel.classList.remove('open'); settingsToggle.setAttribute('aria-expanded','false'); settingsToggle.querySelector('.gear').textContent='⚙'; }
+    });
+
+    // 音乐播放器
+    const audio = document.querySelector('#audio');
+    const playlistSelect = document.querySelector('#playlist');
+    const trackName = document.querySelector('#trackName');
+    let currentTrack = 0;
+
+    PLAYLIST.forEach((track, index) => {
+      const option = document.createElement('option');
+      option.value = index;
+      option.textContent = track.title;
+      playlistSelect.appendChild(option);
+    });
+
+    function loadTrack(index, autoplay = false) {
+      if (!PLAYLIST.length) return;
+      currentTrack = (index + PLAYLIST.length) % PLAYLIST.length;
+      playlistSelect.value = currentTrack;
+      audio.src = PLAYLIST[currentTrack].src;
+      trackName.textContent = PLAYLIST[currentTrack].title;
+      if (autoplay) audio.play().catch(() => {});
+    }
+
+    playlistSelect.addEventListener('change', () => {
+      loadTrack(Number(playlistSelect.value), true);
+    });
+    document.querySelector('#previous').addEventListener('click', () => {
+      loadTrack(currentTrack - 1, true);
+    });
+    document.querySelector('#next').addEventListener('click', () => {
+      loadTrack(currentTrack + 1, true);
+    });
+    audio.addEventListener('ended', () => loadTrack(currentTrack + 1, true));
+    document.querySelector('#volume').addEventListener('input', e => {
+      audio.volume = Number(e.target.value);
+    });
+    audio.volume = 0.35;
+    if (PLAYLIST.length) loadTrack(0);
+
+    // 场景、相机、渲染器
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x101b2a);
+    scene.fog = new THREE.FogExp2(0x263748, 0.0062);
+
+    const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, 0.1, 250);
+    camera.position.set(47, 32, 62);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 700 ? 1.15 : 1.5));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.18;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 2.0, 0);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.rotateSpeed = 0.65;
+    controls.zoomSpeed = 0.8;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI * 0.48;
+    controls.minDistance = 22;
+    controls.maxDistance = 78;
+
+    const hemisphere = new THREE.HemisphereLight(0xd8e7f5, 0x59483e, 0.52);
+    scene.add(hemisphere);
+
+    const sun = new THREE.DirectionalLight(0xffe2b4, 0.2);
+    sun.position.set(-18, 25, 14);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.left = -32;
+    sun.shadow.camera.right = 32;
+    sun.shadow.camera.top = 32;
+    sun.shadow.camera.bottom = -32;
+    sun.shadow.bias = -0.00025;
+    scene.add(sun);
+
+    const moonLight = new THREE.DirectionalLight(0xb5cce8, 0.92);
+    moonLight.position.set(12, 20, -16);
+    scene.add(moonLight);
+
+    // 星空
+    const starPositions = [];
+    for (let i = 0; i < 950; i++) {
+      const radius = 75 + Math.random() * 70;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI * 0.46;
+      starPositions.push(
+        radius * Math.sin(phi) * Math.cos(theta),
+        radius * Math.cos(phi) + 7,
+        radius * Math.sin(phi) * Math.sin(theta)
+      );
+    }
+
+    const starGeometry = new THREE.BufferGeometry();
+    starGeometry.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(starPositions, 3)
+    );
+
+    const starField = new THREE.Points(
+      starGeometry,
+      new THREE.PointsMaterial({
+        color: 0xe6efff,
+        size: 0.16,
+        transparent: true,
+        opacity: 0.85,
+        depthWrite: false
+      })
+    );
+    scene.add(starField);
+
+    const moon = new THREE.Mesh(
+      new THREE.SphereGeometry(1.55, 32, 24),
+      new THREE.MeshBasicMaterial({ color: 0xf1e8d1 })
+    );
+    moon.position.set(-23, 19, -35);
+    scene.add(moon);
+
+    // 季节配色
+    const SEASONS = {
+      spring: { ground: 0x829b78, mountain: 0x61766a, fog: 0x9caeaa },
+      summer: { ground: 0x71865b, mountain: 0x586e62, fog: 0x9bab9e },
+      autumn: { ground: 0x9c7951, mountain: 0x72675b, fog: 0xb39d83 },
+      winter: { ground: 0xc5cdd0, mountain: 0x526274, fog: 0x9baab5 }
+    };
+
+    const groundMaterial = new THREE.MeshStandardMaterial({
+      color: 0xe1e7e9,
+      roughness: 0.96
+    });
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(180, 180),
+      groundMaterial
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.12;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // 山峰
+    const mountainMaterials = [];
+
+    function makeMountain(x, z, radius, height, color) {
+      const geo = new THREE.ConeGeometry(radius, height, 8, 2);
+      const pos = geo.attributes.position;
+
+      for (let i = 0; i < pos.count; i++) {
+        const wobble = 0.92 + Math.random() * 0.16;
+        pos.setXYZ(i, pos.getX(i) * wobble, pos.getY(i), pos.getZ(i) * wobble);
+      }
+
+      geo.computeVertexNormals();
+
+      const mat = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 1,
+        flatShading: true
+      });
+      mountainMaterials.push(mat);
+
+      const mountain = new THREE.Mesh(geo, mat);
+      mountain.position.set(x, height / 2 - 0.2, z);
+      mountain.castShadow = true;
+      mountain.receiveShadow = true;
+      scene.add(mountain);
+
+      const snowCap = new THREE.Mesh(
+        new THREE.ConeGeometry(radius * 0.36, height * 0.28, 8),
+        new THREE.MeshStandardMaterial({ color: 0xe6e8e2, roughness: 1 })
+      );
+      snowCap.position.set(x, height * 0.78, z);
+      scene.add(snowCap);
+    }
+
+    [
+      [-38, -34, 10, 13], [38, -34, 10, 13],
+      [-44, 8, 8, 11], [44, 8, 8, 11]
+    ].forEach(([x, z, r, h]) => makeMountain(x, z, r, h, 0x526274));
+
+    // 松树林
+    const trunkMaterial = new THREE.MeshStandardMaterial({
+      color: 0x594637,
+      roughness: 1
+    });
+    const treeMaterials = [];
+
+    function makePine(x, z, scale = 1) {
+      const group = new THREE.Group();
+
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.11, 0.18, 1.25, 7),
+        trunkMaterial
+      );
+      trunk.position.y = 0.62;
+      group.add(trunk);
+
+      for (let i = 0; i < 4; i++) {
+        const mat = new THREE.MeshStandardMaterial({
+          color: [0x315548, 0x3c6256, 0x29483f][i % 3],
+          roughness: 1
+        });
+        treeMaterials.push(mat);
+
+        const crown = new THREE.Mesh(
+          new THREE.ConeGeometry(1.05 * (1 - i * 0.16), 1.9, 9),
+          mat
+        );
+        crown.position.y = 1.2 + i * 0.85;
+        crown.castShadow = true;
+        group.add(crown);
+      }
+
+      group.position.set(x, 0, z);
+      group.scale.setScalar(scale);
+      scene.add(group);
+    }
+
+    // A sparse evergreen border keeps the village as the hero; warm fairy bulbs sparkle in the trees.
+    const treeLightMat = new THREE.MeshBasicMaterial({ color: 0xffd18a, toneMapped: false });
+    const garlandMat = new THREE.MeshStandardMaterial({ color:0x8b3f38, roughness:0.9 });
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2 + 0.12;
+      const radius = 27 + (i % 3) * 1.6;
+      const x = Math.cos(a) * radius, z = Math.sin(a) * radius;
+      const scale = 0.9 + (i % 4) * 0.12;
+      makePine(x, z, scale);
+      const bulbs = new THREE.Group();
+      for (let j = 0; j < 7; j++) {
+        const t = j / 6;
+        const angle = t * Math.PI * 2.25;
+        const y = 1.0 + t * 3.25;
+        const r = (1.0 - t * 0.68) * scale;
+        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.105, 10, 8), treeLightMat);
+        bulb.position.set(Math.cos(angle) * r, y, Math.sin(angle) * r);
+        bulbs.add(bulb);
+      }
+      bulbs.position.set(x, 0, z); scene.add(bulbs);
+      const garlandPoints=[];
+      for(let k=0;k<=36;k++) { const t=k/36, a=t*Math.PI*5.5; const r=(1.02-t*.68)*scale; garlandPoints.push(new THREE.Vector3(Math.cos(a)*r,0.82+t*3.25,Math.sin(a)*r)); }
+      const garland=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(garlandPoints),72,0.035,5,false),garlandMat);
+      garland.position.set(x,0,z); scene.add(garland);
+      for(let b=0;b<5;b++) { const t=(b+.4)/5, a=t*Math.PI*5.5, r=(1.02-t*.68)*scale; const bauble=new THREE.Mesh(new THREE.SphereGeometry(.13,12,10),new THREE.MeshStandardMaterial({color:[0xa7473e,0xd7b36f,0x7f9b91,0xe8dfc8,b%2?0x9d3f39:0xd8b36d][b],metalness:.2,roughness:.35})); bauble.position.set(x+Math.cos(a)*r,0.82+t*3.25,z+Math.sin(a)*r); scene.add(bauble); }
+    }
+
+    // COSY HOME COTTAGE — click it to return to HOME_URL in the editable config below
+    const cottage = new THREE.Group();
+    const cottageBodyMat = new THREE.MeshStandardMaterial({ color: 0xf0d8bd, roughness: 0.88 });
+    const cottageRoofMat = new THREE.MeshStandardMaterial({ color: 0x6b3e45, roughness: 0.82 });
+    const cottageTrimMat = new THREE.MeshStandardMaterial({ color: 0xffe8c9, roughness: 0.75 });
+    const cottageGlassMat = new THREE.MeshStandardMaterial({ color: 0x9cbbb0, emissive: 0xffb86c, emissiveIntensity: 1.05, roughness: 0.25 });
+    const cottageDoorMat = new THREE.MeshStandardMaterial({ color: 0x684b37, roughness: 0.8 });
+    function cottageBox(w,h,d,mat,x,y,z,parent=cottage) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+      m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; parent.add(m); return m;
+    }
+    cottageBox(7.2,3.9,5.1,cottageBodyMat,0,2.0,0);
+    // Cute bakery-style round window and little flower boxes.
+    const roundWindow = new THREE.Mesh(new THREE.CircleGeometry(0.52, 32), cottageGlassMat);
+    roundWindow.position.set(0,3.15,2.59); cottage.add(roundWindow);
+    const roundFrame = new THREE.Mesh(new THREE.TorusGeometry(0.55,0.09,10,32), cottageTrimMat);
+    roundFrame.position.copy(roundWindow.position); cottage.add(roundFrame);
+    for (const wx of [-2.25,2.25]) {
+      cottageBox(1.25,0.22,0.38,cottageDoorMat,wx,1.82,2.72);
+      for(let f=0;f<3;f++) { const flower=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,8),new THREE.MeshStandardMaterial({color:[0xd98f83,0xe6b85f,0xb5c78f][f],emissive:0x2a1208})); flower.position.set(wx-0.35+f*0.35,2.02,2.85); cottage.add(flower); }
+    }
+    // pitched roof panels
+    const roofA = cottageBox(4.15,0.3,5.7,cottageRoofMat,-1.82,4.25,0);
+    roofA.rotation.z = -0.48;
+    const roofB = cottageBox(4.15,0.3,5.7,cottageRoofMat,1.82,4.25,0);
+    roofB.rotation.z = 0.48;
+    // front porch and door
+    cottageBox(1.25,2.45,0.16,cottageDoorMat,0.55,1.28,2.47);
+    cottageBox(0.12,0.12,0.08,cottageTrimMat,0.95,1.25,2.58);
+    cottageBox(1.15,0.18,0.22,cottageTrimMat,0.55,2.55,2.52);
+    for (const x of [-1.75,2.0]) {
+      cottageBox(1.05,1.0,0.13,cottageGlassMat,x,2.45,2.45);
+      cottageBox(1.2,0.12,0.18,cottageTrimMat,x,2.45,2.53);
+      cottageBox(0.12,1.12,0.18,cottageTrimMat,x,2.45,2.53);
+      cottageBox(0.1,1.0,0.2,cottageTrimMat,x,2.45,2.55);
+    }
+    // chimney and warm porch lights
+    cottageBox(0.62,1.55,0.62,cottageRoofMat,-2.0,4.9,-0.9);
+    const porchLampMat = new THREE.MeshStandardMaterial({color:0xffd08a,emissive:0xffa84a,emissiveIntensity:1.5});
+    const porchLamp = new THREE.Mesh(new THREE.SphereGeometry(0.16,16,12),porchLampMat);
+    porchLamp.position.set(1.55,2.65,2.55); cottage.add(porchLamp);
+    const homeLight = new THREE.PointLight(0xffbd79,25,15,2);
+    homeLight.position.set(0,3,2.4); scene.add(homeLight);
+    // HOME sign
+    const homeSignCanvas = document.createElement('canvas');
+    homeSignCanvas.width=768; homeSignCanvas.height=220;
+    const hctx=homeSignCanvas.getContext('2d');
+    hctx.fillStyle='#182c2a'; hctx.fillRect(0,0,768,220);
+    hctx.strokeStyle='#efc987'; hctx.lineWidth=13; hctx.strokeRect(14,14,740,192);
+    hctx.shadowColor='rgba(255,190,105,.28)'; hctx.shadowBlur=8; hctx.fillStyle='#f5e5c9'; hctx.font='bold 104px Georgia'; hctx.textAlign='center'; hctx.textBaseline='middle';
+    hctx.fillText('⌂  HOME',384,112);
+    const homeTex=new THREE.CanvasTexture(homeSignCanvas); homeTex.colorSpace=THREE.SRGBColorSpace;
+    const homeSign=new THREE.Mesh(new THREE.PlaneGeometry(5.2,1.42),new THREE.MeshBasicMaterial({map:homeTex,transparent:true,side:THREE.DoubleSide}));
+    homeSign.position.set(0,6.05,2.72); cottage.add(homeSign);
+    // Snow-laden roof ridges, a Christmas wreath and warm lanterns dress the little market cottage.
+    const roofSnowMat=new THREE.MeshStandardMaterial({color:0xf3f5f2,roughness:1});
+    for(const side of [-1,1]) { const snowLip=new THREE.Mesh(new THREE.BoxGeometry(4.25,.16,5.78),roofSnowMat); snowLip.position.set(side*1.82,4.43,0); snowLip.rotation.z=side*.37; cottage.add(snowLip); }
+    const wreath=new THREE.Group();
+    const wreathRing=new THREE.Mesh(new THREE.TorusGeometry(.62,.13,10,32),new THREE.MeshStandardMaterial({color:0x315747,roughness:.9})); wreath.add(wreathRing);
+    for(let q=0;q<9;q++){const a=q/9*Math.PI*2;const leaf=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8),new THREE.MeshStandardMaterial({color:q%2?0x3e6b51:0x294c3d,roughness:1}));leaf.position.set(Math.cos(a)*.58,Math.sin(a)*.58,0);leaf.scale.set(.72,1.2,.55);wreath.add(leaf);}
+    const bow=new THREE.Mesh(new THREE.TorusGeometry(.19,.07,8,18),new THREE.MeshStandardMaterial({color:0xa9473e,roughness:.55})); bow.position.set(0,-.68,.02); wreath.add(bow);
+    wreath.position.set(-2.45,2.55,2.66); cottage.add(wreath);
+    for(const x of [-3.05,3.05]) { const icicle=new THREE.Mesh(new THREE.ConeGeometry(.08,.55,7),roofSnowMat); icicle.position.set(x,3.92,2.45); icicle.rotation.x=Math.PI; cottage.add(icicle); }
+    cottage.position.set(-33,0,-28);
+    cottage.rotation.y=0;
+    cottage.userData={kind:'home',name:'Your Cosy Home',description:'A warm little cottage. Click to return to your homepage.',url:null};
+    scene.add(cottage);
+
+    // 营火
+    const fireGroup = new THREE.Group();
+    fireGroup.position.set(0, 0, 0);
+
+    const stoneMaterial = new THREE.MeshStandardMaterial({
+      color: 0x666761,
+      roughness: 1
+    });
+
+    for (let i = 0; i < 9; i++) {
+      const a = i / 9 * Math.PI * 2;
+      const stone = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.34),
+        stoneMaterial
+      );
+      stone.position.set(Math.cos(a) * 1.2, 0.24, Math.sin(a) * 1.2);
+      stone.scale.set(1.2, 0.7, 0.9);
+      fireGroup.add(stone);
+    }
+
+    const logMaterial = new THREE.MeshStandardMaterial({
+      color: 0x573b29,
+      roughness: 1
+    });
+
+    for (let i = 0; i < 3; i++) {
+      const log = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14, 0.18, 1.7, 8),
+        logMaterial
+      );
+      log.rotation.z = Math.PI / 2;
+      log.rotation.y = i * 1.05;
+      log.position.y = 0.38 + i * 0.1;
+      fireGroup.add(log);
+    }
+
+    const flame = new THREE.Mesh(
+      new THREE.ConeGeometry(0.48, 1.4, 9),
+      new THREE.MeshBasicMaterial({ color: 0xff8e43 })
+    );
+    flame.position.y = 1.12;
+    fireGroup.add(flame);
+    scene.add(fireGroup);
+
+    const fireLight = new THREE.PointLight(0xff9955, 23, 14, 2);
+    fireLight.position.set(0, 1.8, 0);
+    scene.add(fireLight);
+
+    // Cozy little log stools around the central communal fire.
+    const stoolWood = new THREE.MeshStandardMaterial({ color: 0x78543a, roughness: 0.9 });
+    for (let i=0;i<8;i++) {
+      const a=i/8*Math.PI*2;
+      const stool=new THREE.Mesh(new THREE.CylinderGeometry(0.48,0.55,0.62,12),stoolWood);
+      stool.position.set(Math.cos(a)*4.1,0.31,Math.sin(a)*4.1); stool.castShadow=true; stool.receiveShadow=true; scene.add(stool);
+      const seat=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.12,12),new THREE.MeshStandardMaterial({color:0xb58a5a,roughness:0.82}));
+      seat.position.set(stool.position.x,0.68,stool.position.z); scene.add(seat);
+    }
+
+    // ============================================================
+    // EASY EDIT ZONE — change shop names, logos, links and colours here.
+    // Replace each url with your own website. Use "#" to disable a link.
+    // HOME_URL is the homepage opened when the cottage is clicked.
+    // ============================================================
+    const HOME_URL = "https://example.com";
+    const COFFEE_VANS = [
+      {name:"THE DAILY GRIND", logo:"DG", logoImage:PHOTOS[0], tagline:"Good coffee, slow mornings.", url:"https://example.com", body:"#e8dfcb", roof:"#52736b", accent:"#c58b55", style:"classic"},
+      {name:"ROAM & ROAST", logo:"R&R", logoImage:PHOTOS[1], tagline:"Specialty coffee on the road.", url:"https://example.com", body:"#d9a36f", roof:"#463a32", accent:"#f0d5a5", style:"retro"},
+      {name:"MORNING POST", logo:"MP", logoImage:PHOTOS[2], tagline:"Your little daily coffee stop.", url:"https://example.com", body:"#d8e1dc", roof:"#a6533e", accent:"#f1d7a8", style:"awning"},
+      {name:"VELVET BEAN", logo:"VB", logoImage:PHOTOS[3], tagline:"Smooth brews, lovely views.", url:"https://example.com", body:"#4b554e", roof:"#d7c5a4", accent:"#d9a76f", style:"modern"},
+      {name:"SUNNY SIDE CAFÉ", logo:"☼", logoImage:PHOTOS[4], tagline:"A brighter kind of coffee.", url:"https://example.com", body:"#e9c85f", roof:"#f5ead1", accent:"#b85e42", style:"awning"},
+      {name:"WILDWOOD COFFEE", logo:"WW", logoImage:PHOTOS[5], tagline:"Forest air and fresh espresso.", url:"https://example.com", body:"#71836a", roof:"#3f4c3e", accent:"#d4b58a", style:"classic"},
+      {name:"CAFÉ NOMAD", logo:"CN", tagline:"Take the scenic route.", url:"https://example.com", body:"#d8c6b2", roof:"#637a89", accent:"#bd805e", style:"modern"},
+      {name:"LITTLE BRASS CUP", logo:"LB", tagline:"A tiny van with a big heart.", url:"https://example.com", body:"#c28c5b", roof:"#493c32", accent:"#e7c68e", style:"retro"},
+      {name:"MOONBEAM ESPRESSO", logo:"ME", tagline:"Coffee beneath the stars.", url:"https://example.com", body:"#58647a", roof:"#d7d0c1", accent:"#e4b779", style:"modern"},
+      {name:"HONEY & OAK", logo:"H&O", tagline:"Warm cups, kind company.", url:"https://example.com", body:"#d7b98d", roof:"#65756b", accent:"#f2e6cf", style:"classic"}
+    ];
+
+    const vanPickTargets = [];
+    const coffeeVans = [];
+    const vanMaterials = [];
+    const selectedLabel = document.querySelector('#selectedLabel');
+    const selectedHint = document.querySelector('#selectedHint');
+    const hoverCard = document.querySelector('#hoverCard');
+    const hoverName = document.querySelector('#hoverName');
+    const hoverDesc = document.querySelector('#hoverDesc');
+    const hoverLogo = document.querySelector('#hoverLogo');
+    const hoverLink = document.querySelector('#hoverLink');
+    const toast = document.querySelector('#toast');
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let hoveredObject = null;
+    let pointerMoved = false;
+
+    function makeSignTexture(shop) {
+      const c=document.createElement('canvas'); c.width=900; c.height=280;
+      const ctx=c.getContext('2d');
+      function paint(image=null) {
+        ctx.clearRect(0,0,c.width,c.height);
+        ctx.fillStyle='#172526'; ctx.fillRect(0,0,c.width,c.height);
+        ctx.strokeStyle=shop.accent; ctx.lineWidth=15; ctx.strokeRect(13,13,c.width-26,c.height-26);
+        ctx.strokeStyle='rgba(255,224,174,.38)'; ctx.lineWidth=3; ctx.strokeRect(29,29,c.width-58,c.height-58);
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        if(image) {
+          const maxW=190, maxH=190, scale=Math.min(maxW/image.width,maxH/image.height);
+          const w=image.width*scale, h=image.height*scale;
+          ctx.fillStyle='#fff'; ctx.fillRect(48,45,204,190);
+          ctx.drawImage(image,150-w/2,140-h/2,w,h);
+        } else {
+          ctx.shadowColor='rgba(255,190,105,.22)'; ctx.shadowBlur=7;
+          ctx.fillStyle=shop.accent; ctx.font='bold 76px Georgia'; ctx.fillText(shop.logo,145,135);
+        }
+        ctx.shadowBlur=0; ctx.fillStyle='#fff0d6'; ctx.font='bold 54px Georgia';
+        let name=shop.name;
+        while(ctx.measureText(name).width>620 && ctx.font.match(/(\\d+)px/)) {
+          const size=Math.max(32,parseInt(ctx.font.match(/(\\d+)px/)[1])-3);
+          ctx.font=`bold ${size}px Georgia`;
+        }
+        ctx.fillText(name,535,118);
+        ctx.fillStyle='#d8bd91'; ctx.font='italic 25px Georgia';
+        ctx.fillText('COFFEE  •  EST. 2024',535,190);
+      }
+      paint();
+      const tex=new THREE.CanvasTexture(c); tex.colorSpace=THREE.SRGBColorSpace;
+      if(shop.logoImage) {
+        const image=new Image();
+        image.onload=()=>{ paint(image); tex.needsUpdate=true; };
+        image.onerror=()=>console.warn('Logo image not found:',shop.logoImage);
+        image.src=shop.logoImage;
+      }
+      return tex;
+    }
+
+    function createCoffeeVan(shop,index,position) {
+      const root=new THREE.Group(); root.position.set(position[0],0,position[1]);
+      const bodyMat=new THREE.MeshStandardMaterial({color:shop.body,roughness:0.48});
+      const roofMat=new THREE.MeshStandardMaterial({color:shop.roof,roughness:0.5});
+      const trimMat=new THREE.MeshStandardMaterial({color:shop.accent,metalness:0.25,roughness:0.42});
+      const glassMat=new THREE.MeshStandardMaterial({color:0x314b52,roughness:0.18,metalness:0.12,emissive:0xffb86c,emissiveIntensity:0.48});
+      const rubberMat=new THREE.MeshStandardMaterial({color:0x202426,roughness:0.9});
+      function box(w,h,d,mat,x,y,z,parent=root) {
+        const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+        m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; parent.add(m); return m;
+      }
+      // Rounded-looking retro delivery van body, with front facing +X
+      box(4.35,1.75,2.05,bodyMat,0,1.45,0);
+      box(2.55,0.78,2.0,roofMat,-0.12,2.68,0);
+      box(1.05,1.25,1.95,bodyMat,1.75,1.9,0);
+      // windscreen and side windows
+      box(0.055,0.78,1.48,glassMat,2.29,2.14,0);
+      box(1.0,0.62,0.055,glassMat,1.12,2.43,1.04);
+      box(1.0,0.62,0.055,glassMat,-0.35,2.43,1.04);
+      box(0.9,0.62,0.055,glassMat,-1.55,2.43,1.04);
+      // Matching warm-lit service windows on the opposite side
+      for (const x of [1.12,-0.35,-1.55]) box(0.95,0.66,0.055,glassMat,x,2.43,-1.04);
+      // service hatch, counter and awning
+      box(2.0,0.88,0.08,glassMat,-0.15,2.05,1.08);
+      box(2.0,0.88,0.08,glassMat,-0.15,2.05,-1.08);
+      box(2.35,0.12,0.55,trimMat,-0.15,2.57,1.28);
+      const awning=box(2.5,0.12,0.95,shop.style==='awning'?trimMat:roofMat,-0.15,3.02,1.2);
+      awning.rotation.x=-0.12;
+      // stripe and front bumper
+      box(4.2,0.12,0.07,trimMat,0,1.18,1.04);
+      box(0.16,0.18,2.2,trimMat,2.31,0.78,0);
+      // wheels on both sides
+      for(const x of [-1.35,1.45]) for(const side of [-1,1]) {
+        const wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.48,0.48,0.24,24),rubberMat);
+        wheel.rotation.x=Math.PI/2; wheel.position.set(x,0.65,side*1.03); wheel.castShadow=true; root.add(wheel);
+        const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.26,20),trimMat);
+        hub.rotation.x=Math.PI/2; hub.position.copy(wheel.position); root.add(hub);
+      }
+      // Headlights
+      for(const z of [-0.72,0.72]) {
+        const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.16,16,12),new THREE.MeshStandardMaterial({color:0xffe2a6,emissive:0xffb84e,emissiveIntensity:1.1}));
+        lamp.position.set(2.32,1.2,z); root.add(lamp);
+      }
+      // Large, softly illuminated dark-and-gold signs: readable from both sides and both ends
+      const signTex=makeSignTexture(shop);
+      const signMat=new THREE.MeshBasicMaterial({map:signTex,side:THREE.DoubleSide,toneMapped:false});
+      const sideSignA=new THREE.Mesh(new THREE.PlaneGeometry(3.35,1.04),signMat);
+      sideSignA.position.set(-0.15,3.48,1.23); root.add(sideSignA);
+      const sideSignB=new THREE.Mesh(new THREE.PlaneGeometry(3.35,1.04),signMat);
+      sideSignB.position.set(-0.15,3.48,-1.23); sideSignB.rotation.y=Math.PI; root.add(sideSignB);
+      const endSignA=new THREE.Mesh(new THREE.PlaneGeometry(1.75,0.72),signMat);
+      endSignA.position.set(2.36,2.05,0); endSignA.rotation.y=Math.PI/2; root.add(endSignA);
+      const endSignB=new THREE.Mesh(new THREE.PlaneGeometry(1.75,0.72),signMat);
+      endSignB.position.set(-2.20,2.05,0); endSignB.rotation.y=-Math.PI/2; root.add(endSignB);
+      // Small roof trim
+      box(4.0,0.09,2.08,trimMat,0,3.1,0);
+      const roofSnow=new THREE.Mesh(new THREE.BoxGeometry(3.8,.075,1.9),new THREE.MeshStandardMaterial({color:0xe8edef,roughness:1})); roofSnow.position.set(-.05,3.17,0); root.add(roofSnow);
+      const miniWreath=new THREE.Mesh(new THREE.TorusGeometry(.23,.055,7,18),new THREE.MeshStandardMaterial({color:0x42634c,roughness:.9})); miniWreath.position.set(-1.72,1.85,1.105); root.add(miniWreath);
+      const wreathBerry=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),new THREE.MeshStandardMaterial({color:0xb94d42,emissive:0x3a0905})); wreathBerry.position.set(-1.72,2.06,1.14); root.add(wreathBerry);
+      // Each van gets a distinct roof silhouette and a warm interior glow.
+      const roofDetails = index % 4;
+      if (roofDetails === 0) {
+        const cup = new THREE.Group();
+        const cupBody = new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.19,0.55,16),new THREE.MeshStandardMaterial({color:0xf4e4c8,roughness:0.45}));
+        cup.add(cupBody); const coffee = new THREE.Mesh(new THREE.CircleGeometry(0.18,16),new THREE.MeshBasicMaterial({color:0x6a3e2b})); coffee.rotation.x=-Math.PI/2; coffee.position.y=0.28; cup.add(coffee); cup.position.set(-0.65,3.38,0); root.add(cup);
+      } else if (roofDetails === 1) {
+        for (let k=-1;k<=1;k++) box(0.09,0.32,2.05,trimMat,k*0.62,3.25,0);
+      } else if (roofDetails === 2) {
+        const roofBadge = new THREE.Mesh(new THREE.BoxGeometry(1.1,0.38,0.22),trimMat); roofBadge.position.set(-0.3,3.32,0); root.add(roofBadge);
+      } else {
+        const roofRack = box(1.4,0.1,1.35,trimMat,-0.5,3.35,0);
+      }
+      const interiorGlow = new THREE.PointLight(0xffbd78, 3.2, 7, 2);
+      interiorGlow.position.set(-0.2,2.35,0); root.add(interiorGlow);
+      // Van is arranged tangentially around the fire, with its front facing inward.
+      const angle = Math.atan2(position[1], position[0]);
+      root.rotation.y = Math.PI - angle;
+      root.userData={kind:'van',shop,index};
+      scene.add(root); coffeeVans.push(root); vanPickTargets.push(...root.children.filter(o=>o.isMesh));
+      return root;
+    }
+
+    const vanRadius = 19.5;
+    const vanSpots = COFFEE_VANS.map((_,i) => {
+      const angle = -Math.PI/2 + (i / COFFEE_VANS.length) * Math.PI * 2;
+      return [Math.cos(angle) * vanRadius, Math.sin(angle) * vanRadius];
+    });
+    COFFEE_VANS.forEach((shop,i)=>createCoffeeVan(shop,i,vanSpots[i]));
+
+    // Keep the home cottage farther toward the village perimeter, clear of the coffee stops
+    cottage.position.set(-33,0,-28);
+    vanPickTargets.push(...cottage.children.filter(o=>o.isMesh));
+
+    function setSelected(item) {
+      if (!item) {
+        selectedLabel.textContent='Explore the village';
+        selectedHint.textContent='Hover over a coffee van to discover its shop sign. Click to visit its website.';
+        return;
+      }
+      if(item.userData.kind==='home') {
+        selectedLabel.textContent='⌂ Your Cosy Home';
+        selectedHint.textContent='Click the cottage to return to your homepage.';
+      } else {
+        selectedLabel.textContent=item.userData.shop.name;
+        selectedHint.textContent=item.userData.shop.tagline+'  ·  Click to visit website.';
+      }
+    }
+
+    function updatePointer(event) {
+      const rect=renderer.domElement.getBoundingClientRect();
+      pointer.x=((event.clientX-rect.left)/rect.width)*2-1;
+      pointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
+      raycaster.setFromCamera(pointer,camera);
+    }
+    function findRoot(mesh) {
+      let node=mesh;
+      while(node && !node.userData.kind) node=node.parent;
+      return node;
+    }
+    function showHover(item,event) {
+      if(!item || (item.userData.kind!=='van' && item.userData.kind!=='home')) {
+        hoverCard.style.display='none'; document.body.style.cursor='grab'; return;
+      }
+      document.body.style.cursor='pointer';
+      if(item.userData.kind==='home') {
+        hoverName.textContent='⌂ YOUR COSY HOME';
+        hoverDesc.textContent='A warm little cottage. Click to return to your homepage.';
+        hoverCard.querySelector('.eyebrow').textContent='Home sweet home';
+        hoverLogo.style.display='none';
+        hoverLink.textContent='CLICK TO GO HOME ↗';
+        hoverLink.href=HOME_URL;
+      } else {
+        const s=item.userData.shop;
+        hoverName.textContent=s.name; hoverDesc.textContent=s.tagline;
+        hoverCard.querySelector('.eyebrow').textContent='☕ COFFEE STOP';
+        if(s.logoImage) { hoverLogo.src=s.logoImage; hoverLogo.style.display='block'; }
+        else { hoverLogo.removeAttribute('src'); hoverLogo.style.display='none'; }
+        hoverLink.textContent='CLICK TO VISIT WEBSITE ↗';
+        hoverLink.href=(s.url && s.url!=='#')?s.url:'#';
+      }
+      hoverCard.style.display='block';
+      if(event) {
+        const x=Math.min(event.clientX+16,innerWidth-250);
+        const y=Math.min(event.clientY+16,innerHeight-130);
+        hoverCard.style.left=Math.max(8,x)+'px'; hoverCard.style.top=Math.max(8,y)+'px';
+      }
+    }
+    hoverLink.addEventListener('click', event => {
+      if(!hoverLink.getAttribute('href') || hoverLink.getAttribute('href')==='#' || hoverLink.href==='https://example.com/') {
+        event.preventDefault();
+        toast.textContent='Please add this shop website in the COFFEE_VANS list.';
+        toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2600);
+      }
+    });
+
+    function openDestination(item) {
+      let url;
+      if(item.userData.kind==='home') url=HOME_URL;
+      else url=item.userData.shop.url;
+      if(!url || url==='#' || url==='https://example.com') {
+        toast.textContent='Please add your own website link in the EASY EDIT ZONE.';
+        toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2600); return;
+      }
+      toast.textContent='Opening '+(item.userData.kind==='home'?'your homepage':item.userData.shop.name)+'…';
+      toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1800);
+      window.open(url,'_blank','noopener,noreferrer');
+    }
+
+    // DESKTOP: hover to preview, click the same 3D object to visit its link.
+    // MOBILE: first tap previews the details; second tap on the same object visits.
+    let mobileArmedItem = null;
+    renderer.domElement.addEventListener('pointermove',event=>{
+      if(event.pointerType==='touch') return;
+      updatePointer(event);
+      const hits=raycaster.intersectObjects(vanPickTargets,false);
+      const item=hits.length?findRoot(hits[0].object):null;
+      if(item!==hoveredObject) { hoveredObject=item; setSelected(item); }
+      showHover(item,event);
+    });
+    renderer.domElement.addEventListener('pointerleave',event=>{
+      if(event.pointerType==='touch') return;
+      hoveredObject=null; hoverCard.style.display='none'; document.body.style.cursor='grab'; setSelected(null);
+    });
+    renderer.domElement.addEventListener('click',event=>{
+      updatePointer(event);
+      const hits=raycaster.intersectObjects(vanPickTargets,false);
+      if(!hits.length) {
+        if(innerWidth<=650) {
+          hoverCard.style.display='none';
+          mobileArmedItem=null;
+        }
+        return;
+      }
+      const item=findRoot(hits[0].object);
+      if(!item || (item.userData.kind!=='van' && item.userData.kind!=='home')) return;
+      if(innerWidth<=650) {
+        if(mobileArmedItem===item) {
+          mobileArmedItem=null;
+          openDestination(item);
+        } else {
+          mobileArmedItem=item;
+          hoveredObject=item; setSelected(item); showHover(item,event);
+        }
+      } else {
+        openDestination(item);
+      }
+    });
+    document.querySelector('#resetView').addEventListener('click',()=>{
+      camera.position.set(31,22,42); controls.target.set(0,1.8,0); controls.update();
+    });
+
+
+    // ============================================================
+    // 30 WOODLAND FRIENDS — procedural 3D animals, no model files.
+    // They wander freely across the whole village with random turns,
+    // pauses and changing speeds (not a circular parade).
+    // ============================================================
+    const animalSpecs = [
+      {kind:'squirrel', color:0xb96f3d, belly:0xf1d7b5, ears:'point', tail:'big'},
+      {kind:'squirrel', color:0xc9844d, belly:0xf6dfc2, ears:'point', tail:'big'},
+      {kind:'squirrel', color:0x98552f, belly:0xf0d6b8, ears:'point', tail:'big'},
+      {kind:'cat', color:0x85817b, belly:0xe9dfd0, ears:'point', tail:'long'},
+      {kind:'cat', color:0xd0a06f, belly:0xffedda, ears:'point', tail:'long'},
+      {kind:'cat', color:0x393b40, belly:0xd9d5d0, ears:'point', tail:'long'},
+      {kind:'dog', color:0xc99558, belly:0xf0dfc5, ears:'flop', tail:'long'},
+      {kind:'dog', color:0x8c654b, belly:0xe8d4bb, ears:'flop', tail:'long'},
+      {kind:'dog', color:0xe1cda8, belly:0xfff5e4, ears:'flop', tail:'long'},
+      {kind:'rabbit', color:0xe6ddd0, belly:0xffffff, ears:'long', tail:'short'},
+      {kind:'rabbit', color:0xb8a99a, belly:0xf5e8dc, ears:'long', tail:'short'},
+      {kind:'rabbit', color:0xc98f78, belly:0xffe9dc, ears:'long', tail:'short'},
+      {kind:'bear', color:0x8a6048, belly:0xd9b99a, ears:'round', tail:'short'},
+      {kind:'polar-bear', color:0xf0eee6, belly:0xffffff, ears:'round', tail:'short'},
+      {kind:'polar-bear', color:0xe3e0d7, belly:0xffffff, ears:'round', tail:'short'},
+      {kind:'penguin', color:0x273744, belly:0xf7f5ed, ears:'round', tail:'short'},
+      {kind:'penguin', color:0x344a59, belly:0xffffff, ears:'round', tail:'short'},
+      {kind:'penguin', color:0x1d2934, belly:0xf4f1e8, ears:'round', tail:'short'},
+      {kind:'reindeer', color:0x986b48, belly:0xf0dfc5, ears:'point', tail:'short'},
+      {kind:'reindeer', color:0xb17d50, belly:0xf5e5ca, ears:'point', tail:'short'},
+      {kind:'reindeer', color:0x76513b, belly:0xe9d6bc, ears:'point', tail:'short'},
+      {kind:'fox', color:0xc86c3c, belly:0xffe4c4, ears:'point', tail:'big'},
+      {kind:'fox', color:0xb95732, belly:0xffe8d2, ears:'point', tail:'big'},
+      {kind:'raccoon', color:0x777b80, belly:0xdedbd2, ears:'round', tail:'striped'},
+      {kind:'raccoon', color:0x62666c, belly:0xe6e1d8, ears:'round', tail:'striped'},
+      {kind:'hedgehog', color:0x96745b, belly:0xe8d7c2, ears:'round', tail:'short'},
+      {kind:'hedgehog', color:0x82634e, belly:0xf0dfca, ears:'round', tail:'short'},
+      {kind:'deer', color:0xb78a5e, belly:0xf1dfc3, ears:'point', tail:'short'},
+      {kind:'panda', color:0xf0eee8, belly:0xffffff, ears:'round', tail:'short'},
+      {kind:'panda', color:0xe7e4dc, belly:0xffffff, ears:'round', tail:'short'}
+    ];
+    const woodlandFriends=[];
+    const animalMat=(color,rough=0.9)=>new THREE.MeshStandardMaterial({color,roughness:rough});
+    function addAnimalPart(parent,geometry,material,pos,scale=null) {
+      const mesh=new THREE.Mesh(geometry,material); mesh.position.set(...pos);
+      if(scale) mesh.scale.set(...scale); mesh.castShadow=true; mesh.receiveShadow=true; parent.add(mesh); return mesh;
+    }
+    animalSpecs.forEach((spec,i)=>{
+      const animal=new THREE.Group();
+      const fur=animalMat(spec.color), cream=animalMat(spec.belly), dark=animalMat(0x292522),
+            pink=animalMat(0xd58e88), orange=animalMat(0xd98235), antlerMat=animalMat(0xc7a77d);
+      const isPenguin=spec.kind==='penguin';
+      const isPolar=spec.kind==='polar-bear';
+      const isReindeer=spec.kind==='reindeer';
+      const bodyScale=isPenguin?[.88,1.12,.92]:isPolar?[1.18,1.02,1.45]:[1.05,.82,1.35];
+      addAnimalPart(animal,new THREE.SphereGeometry(.48,16,12),fur,[0,.52,0],bodyScale);
+      addAnimalPart(animal,new THREE.SphereGeometry(.34,16,12),fur,[0,1.02,.34],[.95,.95,.92]);
+      addAnimalPart(animal,new THREE.SphereGeometry(isPenguin?.30:.23,14,10),cream,
+        [0,.48,.43],isPenguin?[.92,1.15,.58]:[.9,.9,.55]);
+
+      // Ears: rabbit, cat, fox, deer and woodland friends.
+      if(spec.ears==='point') {
+        for(const x of [-.22,.22]) addAnimalPart(animal,new THREE.ConeGeometry(.13,.36,8),fur,[x,1.35,.32]);
+      } else if(spec.ears==='round') {
+        for(const x of [-.25,.25]) addAnimalPart(animal,new THREE.SphereGeometry(.14,12,8),fur,[x,1.28,.30]);
+      } else if(spec.ears==='flop') {
+        for(const x of [-.28,.28]) { const e=addAnimalPart(animal,new THREE.SphereGeometry(.16,12,8),fur,[x,1.12,.28],[.75,1.5,.7]); e.rotation.z=x<0?-.45:.45; }
+      } else if(spec.ears==='long') {
+        for(const x of [-.17,.17]) { const e=addAnimalPart(animal,new THREE.SphereGeometry(.105,12,8),fur,[x,1.48,.32],[.72,2.1,.65]); e.rotation.z=x<0?-.16:.16; }
+      }
+
+      // Reindeer antlers: branching warm ivory silhouettes.
+      if(isReindeer) {
+        for(const x of [-.23,.23]) {
+          const stem=addAnimalPart(animal,new THREE.CylinderGeometry(.035,.055,.43,7),antlerMat,[x,1.48,.22]);
+          stem.rotation.z=x<0?-.22:.22;
+          for(const side of [-1,1]) {
+            const tine=addAnimalPart(animal,new THREE.CylinderGeometry(.025,.04,.23,7),antlerMat,
+              [x+side*.10,1.62,.22]);
+            tine.rotation.z=side<0?-.65:.65;
+          }
+        }
+      }
+
+      // Eyes and muzzle. Penguins get a tiny orange beak and feet.
+      for(const x of [-.12,.12]) addAnimalPart(animal,new THREE.SphereGeometry(.045,8,8),dark,[x,1.08,.64]);
+      if(isPenguin) {
+        addAnimalPart(animal,new THREE.ConeGeometry(.085,.19,8),orange,[0,.96,.78],[1,1,.8]).rotation.x=Math.PI/2;
+      } else {
+        addAnimalPart(animal,new THREE.SphereGeometry(.09,10,8),cream,[0,.91,.67],[1.2,.72,.8]);
+        addAnimalPart(animal,new THREE.SphereGeometry(.045,8,8),pink,[0,.94,.74]);
+      }
+
+      // Flippers for penguins; four short legs for other animals.
+      const legs=[];
+      if(isPenguin) {
+        for(const x of [-.48,.48]) {
+          const wing=addAnimalPart(animal,new THREE.CapsuleGeometry(.10,.42,4,8),fur,[x,.65,.02]);
+          wing.rotation.z=x<0?-.35:.35;
+        }
+        for(const x of [-.19,.19]) {
+          const foot=addAnimalPart(animal,new THREE.SphereGeometry(.12,10,8),orange,[x,.12,.32],[1.35,.45,1.6]);
+          legs.push(foot);
+        }
+      } else {
+        for(const x of [-.27,.27]) for(const z of [-.27,.34]) {
+          const leg=addAnimalPart(animal,new THREE.CylinderGeometry(.075,.09,.34,8),fur,[x,.22,z]);
+          legs.push(leg);
+        }
+      }
+
+      // Tails.
+      if(spec.tail==='big') {
+        const tail=addAnimalPart(animal,new THREE.TorusGeometry(.27,.13,8,16),fur,[-.48,.78,-.35]);
+        tail.rotation.y=.8; tail.rotation.x=.35;
+      } else if(spec.tail==='striped') {
+        const tail=addAnimalPart(animal,new THREE.CylinderGeometry(.09,.18,.62,10),fur,[-.48,.58,-.35]);
+        tail.rotation.z=-.9;
+        for(let b=0;b<2;b++) addAnimalPart(animal,new THREE.TorusGeometry(.13,.035,6,12),cream,[-.48-b*.12,.68-b*.16,-.35]);
+      } else {
+        const tail=addAnimalPart(animal,new THREE.CapsuleGeometry(.09,.28,4,8),fur,[-.48,.7,-.35]);
+        tail.rotation.z=-.8;
+      }
+
+      const scale=isPenguin?.62:(isPolar?0.86:(isReindeer?0.76:0.68));
+      animal.scale.setScalar(scale);
+      // Spawn throughout the whole village instead of in a ring around the fire.
+      const spawnX=(Math.random()-.5)*54;
+      const spawnZ=(Math.random()-.5)*54;
+      const heading=Math.random()*Math.PI*2;
+      const speed=.75+Math.random()*1.45;
+      animal.userData={
+        vx:Math.sin(heading)*speed, vz:Math.cos(heading)*speed,
+        speed, turnIn:1+Math.random()*3.5, pause:Math.random()<.12?1+Math.random()*2:0,
+        legs, phase:Math.random()*Math.PI*2, gait:5+Math.random()*3,
+        bob:.035+Math.random()*.04, kind:spec.kind
+      };
+      animal.position.set(spawnX,0,spawnZ);
+      animal.rotation.y=heading;
+      scene.add(animal); woodlandFriends.push(animal);
+    });
+    // 季节粒子
+    const particleCount = 1900;
+    const particlePositions = new Float32Array(particleCount * 3);
+    const particleSpeeds = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount; i++) {
+      particlePositions[i * 3] = (Math.random() - 0.5) * 65;
+      particlePositions[i * 3 + 1] = Math.random() * 28;
+      particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 65;
+      particleSpeeds[i] = 0.012 + Math.random() * 0.035;
+    }
+
+    const particleGeometry = new THREE.BufferGeometry();
+    particleGeometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(particlePositions, 3)
+    );
+
+    const particleMaterial = new THREE.PointsMaterial({
+      color: 0xf2f5f3,
+      size: 0.13,
+      transparent: true,
+      opacity: 0.78,
+      depthWrite: false
+    });
+
+    const particles = new THREE.Points(particleGeometry, particleMaterial);
+    scene.add(particles);
+
+    function setSeason(name) {
+      const setting = SEASONS[name];
+      groundMaterial.color.setHex(setting.ground);
+      mountainMaterials.forEach(mat => mat.color.setHex(setting.mountain));
+
+      treeMaterials.forEach((mat, i) => {
+        if (name === 'autumn') {
+          mat.color.setHex([0x875c35, 0xa1753f, 0x6d5936][i % 3]);
+        } else if (name === 'spring') {
+          mat.color.setHex([0x496c4d, 0x61805a, 0x365c47][i % 3]);
+        } else if (name === 'summer') {
+          mat.color.setHex([0x244a38, 0x315b40, 0x3a6847][i % 3]);
+        } else {
+          mat.color.setHex([0x29443f, 0x315047, 0x3c5a50][i % 3]);
+        }
+      });
+
+      if (name === 'autumn') particleMaterial.color.setHex(0xe7b770);
+      else if (name === 'spring') particleMaterial.color.setHex(0xf4d7cf);
+      else if (name === 'summer') particleMaterial.color.setHex(0xdcebd0);
+      else particleMaterial.color.setHex(0xf2f5ff);
+
+      particleMaterial.opacity = name === 'winter' ? 0.82 : 0.42;
+      particleMaterial.size = name === 'winter' ? 0.14 : 0.075;
+
+      if (!document.querySelector('#night').checked) {
+        scene.fog.color.setHex(setting.fog);
+      }
+    }
+
+    document.querySelector('#season').addEventListener('change', event => {
+      setSeason(event.target.value);
+    });
+
+    // 昼夜、星空和阳光亮度
+    const nightToggle = document.querySelector('#night');
+    const starsToggle = document.querySelector('#stars');
+    const sunlightSlider = document.querySelector('#sunlight');
+
+    function updateLighting() {
+      const isNight = nightToggle.checked;
+      const season = document.querySelector('#season').value;
+
+      sun.intensity = Number(sunlightSlider.value) * (isNight ? 0.16 : 1);
+      hemisphere.intensity = isNight ? 0.45 : 1.25;
+      moonLight.intensity = isNight ? 0.75 : 0.12;
+      scene.background.set(isNight ? 0x101827 : 0x9bb8cb);
+      scene.fog.color.setHex(isNight ? 0x263747 : SEASONS[season].fog);
+      starField.visible = isNight && starsToggle.checked;
+      moon.visible = isNight;
+      renderer.toneMappingExposure = isNight ? 1.12 : 1.22;
+    }
+
+    nightToggle.addEventListener('change', updateLighting);
+    starsToggle.addEventListener('change', updateLighting);
+    sunlightSlider.addEventListener('input', updateLighting);
+    updateLighting();
+
+    // Opening establishing shot: reveal the whole village, then gently move closer.
+    const introStart = performance.now();
+    const introFrom = new THREE.Vector3(47, 32, 62);
+    const introTo = new THREE.Vector3(31, 22, 42);
+    let introActive = true;
+    renderer.domElement.addEventListener('pointerdown', () => { introActive = false; }, { once:true });
+    document.querySelector('#resetView').addEventListener('click', () => {
+      introActive = false;
+    });
+
+    // 动画
+    const clock = new THREE.Clock();
+    const openingCameraStart = new THREE.Vector3(47,32,62);
+    const openingCameraEnd = new THREE.Vector3(31,22,42);
+    let openingZoom = 0;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const time = clock.getElapsedTime();
+      if (openingZoom < 1) {
+        openingZoom = Math.min(1, openingZoom + 0.0035);
+        const eased = openingZoom * openingZoom * (3 - 2 * openingZoom);
+        camera.position.lerpVectors(openingCameraStart, openingCameraEnd, eased);
+      }
+      const positions = particleGeometry.attributes.position.array;
+      const season = document.querySelector('#season').value;
+      const speed = season === 'winter' ? 1 : 0.5;
+
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3 + 1] -= particleSpeeds[i] * speed;
+        positions[i * 3] += Math.sin(time * 0.45 + i) * 0.002;
+
+        if (positions[i * 3 + 1] < 0) {
+          positions[i * 3 + 1] = 28;
+          positions[i * 3] = (Math.random() - 0.5) * 65;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 65;
+        }
+      }
+
+      particleGeometry.attributes.position.needsUpdate = true;
+      flame.scale.y = 0.92 + Math.sin(time * 12) * 0.08 + Math.random() * 0.04;
+      fireLight.intensity = 21 + Math.sin(time * 9) * 4 + Math.random() * 2;
+      homeLight.intensity = 24; // steady porch illumination; prevent visible pulsing
+
+      if (introActive) {
+        const t=Math.min(1,(performance.now()-introStart)/3200);
+        const eased=1-Math.pow(1-t,3);
+        camera.position.lerpVectors(introFrom,introTo,eased);
+        controls.target.set(0,2.2,0);
+        if(t>=1) introActive=false;
+      }
+      const animalDelta=Math.min(0.05,Math.max(0,time-(animate.lastAnimalTime||time)));
+      animate.lastAnimalTime=time;
+      woodlandFriends.forEach(animal=>{
+        const d=animal.userData;
+        d.turnIn-=animalDelta;
+        if(d.pause>0) {
+          d.pause=Math.max(0,d.pause-animalDelta);
+        } else {
+          if(d.turnIn<=0) {
+            const current=Math.atan2(d.vx,d.vz);
+            const next=current+(Math.random()-.5)*2.5;
+            const newSpeed=.65+Math.random()*1.75;
+            d.vx=Math.sin(next)*newSpeed;
+            d.vz=Math.cos(next)*newSpeed;
+            d.turnIn=1.1+Math.random()*4.2;
+            if(Math.random()<.16) d.pause=.45+Math.random()*1.7;
+          }
+          animal.position.x+=d.vx*animalDelta;
+          animal.position.z+=d.vz*animalDelta;
+        }
+        // Keep the little friends roaming over the full village; turn them back at the edges.
+        const limit=31;
+        if(animal.position.x>limit || animal.position.x< -limit) {
+          d.vx=-d.vx; animal.position.x=Math.max(-limit,Math.min(limit,animal.position.x));
+          d.turnIn=.5+Math.random()*1.2;
+        }
+        if(animal.position.z>limit || animal.position.z< -limit) {
+          d.vz=-d.vz; animal.position.z=Math.max(-limit,Math.min(limit,animal.position.z));
+          d.turnIn=.5+Math.random()*1.2;
+        }
+        const moving=d.pause<=0;
+        animal.rotation.y=Math.atan2(d.vx,d.vz);
+        animal.position.y=moving?Math.abs(Math.sin(time*d.gait+d.phase))*d.bob:0;
+        d.legs.forEach((leg,index)=>{
+          leg.rotation.z=moving?Math.sin(time*d.gait+d.phase+(index%2)*Math.PI)*.24:0;
+        });
+      });
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 700 ? 1.15 : 1.5));
+    });
+  </script>
+</body>
+</html>
